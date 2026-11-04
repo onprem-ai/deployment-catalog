@@ -1,0 +1,32 @@
+services:
+  inference:
+    image: onpremai/minimax-h3-fp8-server:dig-5579de3127b0e327@sha256:5579de3127b0e3279eba7a52c1f5e5d1b07515f46691ccbdd726b538e4498442
+    command:
+    environment:
+      MODEL_DIR: "/models"
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8000/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '4'
+          memory: 40G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '8'
+          memory: 48G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

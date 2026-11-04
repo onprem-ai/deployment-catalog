@@ -1,0 +1,68 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Gemma 4 26B-A4B IT
+  subtitle: BF16 · vision
+  logo: google.svg
+  short_description: >-
+    Google's original Gemma 4 26B MoE (3.8B active) in full BF16 precision. No quantization loss --
+    higher benchmark scores than FP8 variant. Supports multimodal image input.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 92341796864
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: gemma-4-26b-a4b-it
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2026-04-22'
+  parameter_count: 26000000000
+  active_parameter_count: 3800000000
+  weights_disk_size_bytes: 51539607552
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://ai.google.dev/gemma/apache_2.md.txt
+    file: licenses/source-0-LICENSE.txt
+  mixture_of_experts: true
+  format: safetensors
+  quantization: bfloat16
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 262144
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: google--gemma-4-26B-A4B-it--model

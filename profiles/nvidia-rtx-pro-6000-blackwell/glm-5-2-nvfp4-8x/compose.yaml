@@ -1,0 +1,57 @@
+services:
+  inference:
+    image: voipmonitor/vllm:infernal-invocation-vllmf0fa1ce-b12x75787c7-fi1ac6942-cu133-torch213-20260818-r18@sha256:414ec7d0d28358cfd8af0697f330f5c8acbb80e4dc4e5ba69c9fd5b5855ea804
+    command:
+      # prefix-caching: on, set by the image's launcher, not by this command: the
+      # chain serve-infernal-invocation.sh -> serve-gilded-gnosis.sh ->
+      # serve-glm52-v19.sh -> serve-glm52-v16.sh passes --enable-prefix-caching to
+      # vLLM (local-inference-lab/blackwell-llm-docker, launchers/serve-glm52-v16.sh).
+      - /usr/local/bin/serve-infernal-invocation.sh
+    environment:
+      DCP: "1"
+      F8_DMA: "ring"
+      GPUS: "0,1,2,3,4,5,6,7"
+      GPU_MEMORY_UTILIZATION: "0.95"
+      GRAPH: "128"
+      INSTANTTENSOR_BACKEND: "BUFFERED"
+      KV_CACHE_DTYPE: "fp8"
+      LOAD_FORMAT: "instanttensor"
+      MAX_BATCHED_TOKENS: "8192"
+      MAX_MODEL_LEN: "262144"
+      MAX_NUM_SEQS: "32"
+      MODEL: "/models/model"
+      MODEL_FAMILY: "glm52"
+      MOE_BACKEND: "b12x"
+      MOE_MODE: "a16"
+      MTP: "3"
+      ONLINE_QUANT: "mxfp8"
+      PORT: "8080"
+      QUANTIZATION: "modelopt_fp4"
+      QUANTIZATION_CONFIG_JSON: "{\"linear\":{\"weight\":\"mxfp8\"}}"
+      SERVED_MODEL_NAME: "glm-5-2-nvfp4-8x"
+      TP: "8"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 32G
+          devices:
+            - driver: nvidia
+              count: 8
+              capabilities: [gpu]
+        limits:
+          cpus: '4'
+          memory: 128G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

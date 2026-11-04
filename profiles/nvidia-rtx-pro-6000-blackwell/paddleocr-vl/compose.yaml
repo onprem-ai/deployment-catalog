@@ -1,0 +1,136 @@
+services:
+  # The public service: layout detection (stage 1) and aggregation/post-processing
+  # (stage 3), serving POST /layout-parsing on the gateway-exposed port.
+  pipeline:
+    image: ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-vl:dig-6ffc4a3f7730c936@sha256:6ffc4a3f7730c9366bb465ec95489b6602a63d8849677d45a0bad8fe607be0c4
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        set -e
+        cat > /tmp/pipeline_config.yaml << PIPELINEEOF
+        pipeline_name: PaddleOCR-VL-1.5
+        batch_size: 64
+        use_queues: True
+        use_doc_preprocessor: False
+        use_layout_detection: True
+        use_chart_recognition: False
+        use_seal_recognition: False
+        format_block_content: False
+        merge_layout_blocks: True
+
+        SubModules:
+          LayoutDetection:
+            module_name: layout_detection
+            model_name: PP-DocLayoutV3
+            model_dir: null
+            batch_size: 8
+            threshold: 0.3
+            layout_nms: True
+            layout_unclip_ratio: [1.0, 1.0]
+          VLRecognition:
+            module_name: vl_recognition
+            model_name: PaddleOCR-VL-1.5-0.9B
+            model_dir: null
+            batch_size: 4096
+            genai_config:
+              backend: vllm-server
+              server_url: $$VLM_ENDPOINT/v1
+
+        Serving:
+          extra:
+            max_num_input_imgs: null
+        PIPELINEEOF
+
+        echo "Waiting for the VLM sidecar at $$VLM_ENDPOINT..."
+        until curl -sf $$VLM_ENDPOINT/health > /dev/null 2>&1; do
+          sleep 2
+        done
+        echo "VLM sidecar is healthy, starting the pipeline API..."
+        exec paddlex --serve --pipeline /tmp/pipeline_config.yaml --port 8080
+    environment:
+      # The sidecar's address inside this compose network: the service name
+      # resolves container-to-container, so this compose file runs standalone.
+      VLM_ENDPOINT: http://vlm:8090
+      PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK: "True"
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 20s
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 2G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "8"
+          memory: 8G
+    x-ai-deploy:
+      # The pipeline only fits on the GPU if the sidecar allocates its VRAM first
+      # (the command above waits for the sidecar's health before loading models).
+      # If the sidecar stays dead, this container must restart too, or it holds
+      # that VRAM and the sidecar can never start again -- the deadlock this
+      # liveness coupling exists to break.
+      liveness:
+        service: vlm
+        httpGet:
+          path: /health
+          port: 8090
+
+  # The private sidecar: PaddleOCR-VL-1.5-0.9B recognition (stage 2) via vLLM,
+  # reachable only inside the workload group.
+  vlm:
+    image: ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-vllm-server:dig-aa43f8ee71b8b1ad@sha256:aa43f8ee71b8b1ad4b7244fd0639834832e5f4c2dd4fc25f3a6d5b1e83082c40
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        set -e
+        # mm-processor-cache-gb 0 disables vLLM's multimodal input cache: it caches
+        # preprocessed image tensors keyed by content hash, OCR sends unique page
+        # crops so the hit rate is ~0, and the cache only grows host RSS until the
+        # node evicts the container.
+        cat > /tmp/vllm_config.yaml << VLLMEOF
+        gpu-memory-utilization: 0.09
+        max-num-seqs: 32
+        max-num-batched-tokens: 4096
+        mm-processor-cache-gb: 0
+        VLLMEOF
+        exec paddleocr genai_server \
+          --model_name PaddleOCR-VL-1.5-0.9B \
+          --host 0.0.0.0 --port 8090 \
+          --backend vllm \
+          --backend_config /tmp/vllm_config.yaml
+    environment:
+      PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK: "True"
+    expose:
+      - "8090"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8090/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+    # The measured steady-state footprint is ~6.4 GB (5.0 GB vLLM anon plus the
+    # /dev/shm this size covers, which can grow to its full size); the limit is
+    # 9G deliberately, and lower values caused days of memory-controller thrash
+    # ending in an OOM kill.
+    shm_size: 2gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "1"
+          memory: 2G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "4"
+          memory: 9G

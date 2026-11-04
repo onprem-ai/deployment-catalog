@@ -1,0 +1,48 @@
+services:
+  inference:
+    image: vllm/vllm-openai:dig-c936a36723021943@sha256:c936a367230219436a19d3ab4e64e2f25e95f75091d33dc0f53fb09b7522da57
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        rm -rf ~/.cache/flashinfer && \
+        python3 -m vllm.entrypoints.openai.api_server \
+          --model /models/model \
+          --served-model-name qwen35-122b-a10b \
+          --host 0.0.0.0 --port 8080 \
+          --gpu-memory-utilization 1.00 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 4096 \
+          --max-model-len 65536 \
+          --trust-remote-code \
+          --language-model-only \
+          --reasoning-parser qwen3 \
+          --enable-auto-tool-choice \
+          --tool-call-parser qwen3_coder \
+          --enable-prefix-caching \
+          --enforce-eager
+
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 4G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '4'
+          memory: 8G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

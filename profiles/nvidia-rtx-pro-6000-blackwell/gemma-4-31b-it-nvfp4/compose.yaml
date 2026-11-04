@@ -1,0 +1,49 @@
+services:
+  inference:
+    image: vllm/vllm-openai:gemma4-cu130@sha256:0d152595cd940ea1e0890fa190a37b7a86e3f7f0f5048ac3e2e4c14529fea833
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        python3 -m vllm.entrypoints.openai.api_server \
+          --model /models/model \
+          --served-model-name gemma-4-31b-it \
+          --host 0.0.0.0 --port 8080 \
+          --trust-remote-code \
+          --gpu-memory-utilization 0.56 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 4096 \
+          --max-model-len 131072 --kv-cache-dtype fp8_e4m3 \
+          --quantization modelopt \
+          --tensor-parallel-size 1 \
+          --chat-template /opt/profile-files/chat_template.jinja \
+          --enable-prefix-caching \
+          --enable-auto-tool-choice \
+          --tool-call-parser gemma4 \
+          --reasoning-parser gemma4 # Optional: for thinking mode
+
+    volumes:
+      - model:/models/model:ro
+      - ./container-files:/opt/profile-files:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 4G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '8'
+          memory: 16G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

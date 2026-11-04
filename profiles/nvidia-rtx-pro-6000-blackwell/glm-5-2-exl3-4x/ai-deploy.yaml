@@ -1,0 +1,312 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: GLM 5.2
+  subtitle: EXL3 3.5bpw · 4× GPU
+  logo: zhipu.svg
+  short_description: >-
+    GLM-5.2 744B MoE for 4x RTX PRO 6000 Blackwell. Projection-mixed EXL3 routed experts, online
+    Trellis K6 dense and shared projections, NVFP4 DS-MLA KV cache, B12X kernels, and MTP3
+    speculative decoding. MIT licensed.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 4
+    memory_bytes_per_device: 100931731456
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: glm-5-2-exl3-4x
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2026-06-16'
+  parameter_count: 744000000000
+  active_parameter_count: 40000000000
+  weights_disk_size_bytes: 346818609152
+  license:
+    expression: MIT
+    name: MIT License
+    url: https://huggingface.co/brandonmusic/GLM-5.2-EXL3-TR3v4-3.5bpw-MTP78/resolve/9ab9579774cc432df91567a36f6e9e863e0d4c9f/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  mixture_of_experts: true
+  format: safetensors
+  quantization: exl3-3.5bpw
+  speculative_decoding: mtp
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 1048576
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: brandonmusic--GLM-5.2-EXL3-TR3v4-3.5bpw-MTP78--model-embed
+      files:
+      - LICENSE
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - model-embed.safetensors
+      - model-head.safetensors
+      - model-layer-000.safetensors
+      - model-layer-001.safetensors
+      - model-layer-002.safetensors
+      - model-layer-003.safetensors
+      - model-layer-004.safetensors
+      - model-layer-005.safetensors
+      - model-layer-006.safetensors
+      - model-layer-007.safetensors
+      - model-layer-008.safetensors
+      - model-layer-009.safetensors
+      - model-layer-010.safetensors
+      - model-layer-011.safetensors
+      - model-layer-012.safetensors
+      - model-layer-013.safetensors
+      - model-layer-014.safetensors
+      - model-layer-015.safetensors
+      - model-layer-016.safetensors
+      - model-layer-017.safetensors
+      - model-layer-018.safetensors
+      - model-layer-019.safetensors
+      - model-layer-020.safetensors
+      - model-layer-021.safetensors
+      - model-layer-022.safetensors
+      - model-layer-023.safetensors
+      - model-layer-024.safetensors
+      - model-layer-025.safetensors
+      - model-layer-026.safetensors
+      - model-layer-027.safetensors
+      - model-layer-028.safetensors
+      - model-layer-029.safetensors
+      - model-layer-030.safetensors
+      - model-layer-031.safetensors
+      - model-layer-032.safetensors
+      - model-layer-033.safetensors
+      - model-layer-034.safetensors
+      - model-layer-035.safetensors
+      - model-layer-036.safetensors
+      - model-layer-037.safetensors
+      - model-layer-038.safetensors
+      - model-layer-039.safetensors
+      - model-layer-040.safetensors
+      - model-layer-041.safetensors
+      - model-layer-042.safetensors
+      - model-layer-043.safetensors
+      - model-layer-044.safetensors
+      - model-layer-045.safetensors
+      - model-layer-046.safetensors
+      - model-layer-047.safetensors
+      - model-layer-048.safetensors
+      - model-layer-049.safetensors
+      - model-layer-050.safetensors
+      - model-layer-051.safetensors
+      - model-layer-052.safetensors
+      - model-layer-053.safetensors
+      - model-layer-054.safetensors
+      - model-layer-055.safetensors
+      - model-layer-056.safetensors
+      - model-layer-057.safetensors
+      - model-layer-058.safetensors
+      - model-layer-059.safetensors
+      - model-layer-060.safetensors
+      - model-layer-061.safetensors
+      - model-layer-062.safetensors
+      - model-layer-063.safetensors
+      - model-layer-064.safetensors
+      - model-layer-065.safetensors
+      - model-layer-066.safetensors
+      - model-layer-067.safetensors
+      - model-layer-068.safetensors
+      - model-layer-069.safetensors
+      - model-layer-070.safetensors
+      - model-layer-071.safetensors
+      - model-layer-072.safetensors
+      - model-layer-073.safetensors
+      - model-layer-074.safetensors
+      - model-layer-075.safetensors
+      - model-layer-076.safetensors
+      - model-layer-077.safetensors
+      - model-layer-078.safetensors
+      - model-sharedbf16.safetensors
+      - model.safetensors.index.json
+      - nvfp4_mla_outer_scales.json
+      - quantization_config.json
+      - r7-experts-layer-003.json
+      - r7-experts-layer-003.safetensors
+      - r7-experts-layer-004.json
+      - r7-experts-layer-004.safetensors
+      - r7-experts-layer-005.json
+      - r7-experts-layer-005.safetensors
+      - r7-experts-layer-006.json
+      - r7-experts-layer-006.safetensors
+      - r7-experts-layer-007.json
+      - r7-experts-layer-007.safetensors
+      - r7-experts-layer-008.json
+      - r7-experts-layer-008.safetensors
+      - r7-experts-layer-009.json
+      - r7-experts-layer-009.safetensors
+      - r7-experts-layer-010.json
+      - r7-experts-layer-010.safetensors
+      - r7-experts-layer-011.json
+      - r7-experts-layer-011.safetensors
+      - r7-experts-layer-012.json
+      - r7-experts-layer-012.safetensors
+      - r7-experts-layer-013.json
+      - r7-experts-layer-013.safetensors
+      - r7-experts-layer-014.json
+      - r7-experts-layer-014.safetensors
+      - r7-experts-layer-015.json
+      - r7-experts-layer-015.safetensors
+      - r7-experts-layer-016.json
+      - r7-experts-layer-016.safetensors
+      - r7-experts-layer-017.json
+      - r7-experts-layer-017.safetensors
+      - r7-experts-layer-018.json
+      - r7-experts-layer-018.safetensors
+      - r7-experts-layer-019.json
+      - r7-experts-layer-019.safetensors
+      - r7-experts-layer-020.json
+      - r7-experts-layer-020.safetensors
+      - r7-experts-layer-021.json
+      - r7-experts-layer-021.safetensors
+      - r7-experts-layer-022.json
+      - r7-experts-layer-022.safetensors
+      - r7-experts-layer-023.json
+      - r7-experts-layer-023.safetensors
+      - r7-experts-layer-024.json
+      - r7-experts-layer-024.safetensors
+      - r7-experts-layer-025.json
+      - r7-experts-layer-025.safetensors
+      - r7-experts-layer-026.json
+      - r7-experts-layer-026.safetensors
+      - r7-experts-layer-027.json
+      - r7-experts-layer-027.safetensors
+      - r7-experts-layer-028.json
+      - r7-experts-layer-028.safetensors
+      - r7-experts-layer-029.json
+      - r7-experts-layer-029.safetensors
+      - r7-experts-layer-030.json
+      - r7-experts-layer-030.safetensors
+      - r7-experts-layer-031.json
+      - r7-experts-layer-031.safetensors
+      - r7-experts-layer-032.json
+      - r7-experts-layer-032.safetensors
+      - r7-experts-layer-033.json
+      - r7-experts-layer-033.safetensors
+      - r7-experts-layer-034.json
+      - r7-experts-layer-034.safetensors
+      - r7-experts-layer-035.json
+      - r7-experts-layer-035.safetensors
+      - r7-experts-layer-036.json
+      - r7-experts-layer-036.safetensors
+      - r7-experts-layer-037.json
+      - r7-experts-layer-037.safetensors
+      - r7-experts-layer-038.json
+      - r7-experts-layer-038.safetensors
+      - r7-experts-layer-039.json
+      - r7-experts-layer-039.safetensors
+      - r7-experts-layer-040.json
+      - r7-experts-layer-040.safetensors
+      - r7-experts-layer-041.json
+      - r7-experts-layer-041.safetensors
+      - r7-experts-layer-042.json
+      - r7-experts-layer-042.safetensors
+      - r7-experts-layer-043.json
+      - r7-experts-layer-043.safetensors
+      - r7-experts-layer-044.json
+      - r7-experts-layer-044.safetensors
+      - r7-experts-layer-045.json
+      - r7-experts-layer-045.safetensors
+      - r7-experts-layer-046.json
+      - r7-experts-layer-046.safetensors
+      - r7-experts-layer-047.json
+      - r7-experts-layer-047.safetensors
+      - r7-experts-layer-048.json
+      - r7-experts-layer-048.safetensors
+      - r7-experts-layer-049.json
+      - r7-experts-layer-049.safetensors
+      - r7-experts-layer-050.json
+      - r7-experts-layer-050.safetensors
+      - r7-experts-layer-051.json
+      - r7-experts-layer-051.safetensors
+      - r7-experts-layer-052.json
+      - r7-experts-layer-052.safetensors
+      - r7-experts-layer-053.json
+      - r7-experts-layer-053.safetensors
+      - r7-experts-layer-054.json
+      - r7-experts-layer-054.safetensors
+      - r7-experts-layer-055.json
+      - r7-experts-layer-055.safetensors
+      - r7-experts-layer-056.json
+      - r7-experts-layer-056.safetensors
+      - r7-experts-layer-057.json
+      - r7-experts-layer-057.safetensors
+      - r7-experts-layer-058.json
+      - r7-experts-layer-058.safetensors
+      - r7-experts-layer-059.json
+      - r7-experts-layer-059.safetensors
+      - r7-experts-layer-060.json
+      - r7-experts-layer-060.safetensors
+      - r7-experts-layer-061.json
+      - r7-experts-layer-061.safetensors
+      - r7-experts-layer-062.json
+      - r7-experts-layer-062.safetensors
+      - r7-experts-layer-063.json
+      - r7-experts-layer-063.safetensors
+      - r7-experts-layer-064.json
+      - r7-experts-layer-064.safetensors
+      - r7-experts-layer-065.json
+      - r7-experts-layer-065.safetensors
+      - r7-experts-layer-066.json
+      - r7-experts-layer-066.safetensors
+      - r7-experts-layer-067.json
+      - r7-experts-layer-067.safetensors
+      - r7-experts-layer-068.json
+      - r7-experts-layer-068.safetensors
+      - r7-experts-layer-069.json
+      - r7-experts-layer-069.safetensors
+      - r7-experts-layer-070.json
+      - r7-experts-layer-070.safetensors
+      - r7-experts-layer-071.json
+      - r7-experts-layer-071.safetensors
+      - r7-experts-layer-072.json
+      - r7-experts-layer-072.safetensors
+      - r7-experts-layer-073.json
+      - r7-experts-layer-073.safetensors
+      - r7-experts-layer-074.json
+      - r7-experts-layer-074.safetensors
+      - r7-experts-layer-075.json
+      - r7-experts-layer-075.safetensors
+      - r7-experts-layer-076.json
+      - r7-experts-layer-076.safetensors
+      - r7-experts-layer-077.json
+      - r7-experts-layer-077.safetensors
+      - tier_bitmap.json
+      - tokenizer.json
+      - tokenizer_config.json

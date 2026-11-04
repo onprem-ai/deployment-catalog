@@ -1,0 +1,53 @@
+services:
+  inference:
+    image: onpremai/vllm-apertus-swissai-patched:2026-08-07-2@sha256:bc905cb5e937c10e42cc8ac8784958ac62ebd2831d640426bca7ecb7332660f0
+    # Prefix caching stated, not left to the engine default: a repeated system prompt or
+    # conversation is not prefilled again. On for this model on every vLLM version;
+    # stated so a newer engine cannot change it unseen.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        python3 -m vllm.entrypoints.openai.api_server \
+          --model /models/model \
+          --served-model-name apertus-v1.5-70b \
+          --host 0.0.0.0 --port 8080 \
+          --enable-prefix-caching \
+          --dtype auto \
+          --limit-mm-per-prompt '{"image":2,"audio":0}' \
+          --gpu-memory-utilization 0.95 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 4096 \
+          --max-model-len 229376 \
+          --kv-cache-dtype fp8_e4m3 \
+          --tool-call-parser apertus \
+          --enable-auto-tool-choice \
+          --reasoning-parser apertus \
+          --chat-template /models/model/chat_template.jinja
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 60s
+    shm_size: 8gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "1"
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "4"
+          memory: 16G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

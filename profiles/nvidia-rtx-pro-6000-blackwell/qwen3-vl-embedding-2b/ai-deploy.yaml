@@ -1,0 +1,74 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Qwen3 VL Embedding 2B
+  logo: qwen.svg
+  short_description: >-
+    Alibaba's 2.1B multimodal embedding model -- text, images, screenshots, and video. 2048-dim
+    embeddings, Matryoshka (64–2048), 30+ languages.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 8589934592
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: qwen3-vl-embedding-2b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+
+model:
+  released_at: '2026-01-07'
+  parameter_count: 2100000000
+  weights_disk_size_bytes: 5368709120
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: bfloat16
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 32768
+    embedding: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: Qwen--Qwen3-VL-Embedding-2B--model
+      files:
+      - 1_Pooling/config.json
+      - added_tokens.json
+      - chat_template.jinja
+      - config.json
+      - config_sentence_transformers.json
+      - merges.txt
+      - model.safetensors
+      - modules.json
+      - preprocessor_config.json
+      - sentence_bert_config.json
+      - special_tokens_map.json
+      - tokenizer.json
+      - tokenizer_config.json
+      - video_preprocessor_config.json
+      - vocab.json

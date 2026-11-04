@@ -1,0 +1,64 @@
+services:
+  inference:
+    image: voipmonitor/vllm:infernal-invocation-vllmf0fa1ce-b12x75787c7-fi1ac6942-cu133-torch213-20260818-r18@sha256:414ec7d0d28358cfd8af0697f330f5c8acbb80e4dc4e5ba69c9fd5b5855ea804
+    command:
+      # prefix-caching: on, set by the image's launcher, not by this command: the
+      # chain serve-infernal-invocation.sh -> serve-gilded-gnosis.sh ->
+      # serve-glm52-v19.sh -> serve-glm52-v16.sh passes --enable-prefix-caching to
+      # vLLM (local-inference-lab/blackwell-llm-docker, launchers/serve-glm52-v16.sh).
+      - /usr/local/bin/serve-infernal-invocation.sh
+    environment:
+      ASYNC_SCHEDULING: "0"
+      DCP: "1"
+      F8_DMA: "0"
+      GPUS: "0,1,2,3"
+      GPU_MEMORY_UTILIZATION: "0.98"
+      GRAPH: "32"
+      INSTANTTENSOR_BACKEND: "BUFFERED"
+      INSTANTTENSOR_BUFFER_SIZE: "536870912"
+      INSTANTTENSOR_COPY: "0"
+      INSTANTTENSOR_MAX_FREE_MEM_USAGE: "0.05"
+      KV_CACHE_DTYPE: "nvfp4_ds_mla"
+      LOAD_FORMAT: "instanttensor"
+      MAX_BATCHED_TOKENS: "2048"
+      MAX_MODEL_LEN: "65536"
+      MAX_NUM_SEQS: "8"
+      MODEL: "/models/model"
+      MODEL_FAMILY: "glm52-exl3"
+      MODEL_REVISION: "9ab9579774cc432df91567a36f6e9e863e0d4c9f"
+      MOE_BACKEND: "b12x"
+      MOE_MODE: "a16"
+      MTP: "3"
+      MTP_DRAFT_SAMPLE_METHOD: "greedy"
+      MTP_MOE_BACKEND: "triton"
+      ONLINE_QUANT: "trellis-mcg-b6"
+      PORT: "8080"
+      QUANTIZATION: "exl3"
+      SERVED_MODEL_NAME: "glm-5-2-exl3-4x"
+      TP: "4"
+      VLLM_EXL3_PREFILL_CAPACITY: "2048"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 32G
+          devices:
+            - driver: nvidia
+              count: 4
+              capabilities: [gpu]
+        limits:
+          cpus: '4'
+          memory: 128G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

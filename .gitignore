@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*~
+.env
+.env.*
+.onprem-ai/

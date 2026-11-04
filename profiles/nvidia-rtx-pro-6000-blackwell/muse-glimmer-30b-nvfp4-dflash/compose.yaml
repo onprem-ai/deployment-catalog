@@ -1,0 +1,63 @@
+services:
+  inference:
+    image: lmsysorg/sglang:dig-b8022194176049aa@sha256:b8022194176049aaa472943cf8ba9ecb0d8740a42442592327832b6887e622a7
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        set -euo pipefail
+        export HF_HUB_CACHE=/tmp/hf_cache
+        cache_root=/tmp/hf_cache/models--meta-models--Muse-Glimmer-30B-assistant
+        mkdir -p "$$cache_root/snapshots/local" "$$cache_root/refs"
+        for file_path in /models/draft/*; do
+          ln -sf "$$file_path" "$$cache_root/snapshots/local/"
+        done
+        echo local > "$$cache_root/refs/main"
+        python3 -c 'from pathlib import Path; path = Path("/sgl-workspace/sglang/python/sglang/srt/layers/quantization/fp8_utils.py"); old = "if backend == \"cutlass\" and q_input.shape[0] <= 64:"; new = "if backend == \"cutlass\" and q_input.shape[0] <= 64 and not _is_sm120_supported:"; source = path.read_text(encoding="utf-8"); assert source.count(old) == 1, "unexpected MXFP8 guard count"; path.write_text(source.replace(old, new), encoding="utf-8")'
+        exec python3 -m sglang.launch_server \
+          --model-path /models/model \
+          --served-model-name muse-glimmer-30b \
+          --host 0.0.0.0 --port 8080 \
+          --enable-metrics \
+          --mem-fraction-static 0.78 \
+          --context-length 131072 \
+          --kv-cache-dtype fp8_e4m3 \
+          --language-model-only \
+          --fp8-gemm-backend flashinfer_cutlass \
+          --reasoning-parser muse \
+          --tool-call-parser muse \
+          --speculative-algorithm DFLASH \
+          --speculative-draft-model-path meta-models/Muse-Glimmer-30B-assistant \
+          --speculative-draft-model-quantization fp8 \
+          --speculative-dflash-block-size 5
+    volumes:
+      - model:/models/model:ro
+      - draft:/models/draft:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 90
+      start_period: 30s
+    shm_size: 8gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "8"
+          memory: 16G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
+  draft:
+    x-ai-deploy:
+      weights: draft

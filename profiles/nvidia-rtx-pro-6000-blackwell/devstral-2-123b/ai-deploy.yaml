@@ -1,0 +1,76 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Devstral 2 123B
+  logo: mistral.svg
+  short_description: >-
+    Mistral's Devstral-2 123B parameter model for coding and development tasks. Q4_K_M quantization
+    with llama.cpp CUDA backend on NVIDIA Blackwell.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 91268055040
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: llama.cpp
+  compose: compose.yaml
+
+api:
+  routing_model_id: devstral-2-123b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2025-12-09'
+  parameter_count: 123000000000
+  weights_disk_size_bytes: 75161927680
+  license:
+    expression: LicenseRef-Mistral-Modified-MIT
+    name: Mistral Modified MIT License
+    url: https://huggingface.co/mistralai/Devstral-2-123B-Instruct-2512/raw/1613bf01adb5e1c6fdc196b46e6b173eae75eb4a/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  format: gguf
+  quantization: gguf-q4_k_m
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 131072
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: unsloth--Devstral-2-123B-Instruct-2512-GGUF--Devstral-2-123B-Instruct-2512-Q4_K_M
+      files:
+      - Devstral-2-123B-Instruct-2512-Q4_K_M-00001-of-00002.gguf
+      - Devstral-2-123B-Instruct-2512-Q4_K_M-00002-of-00002.gguf
+      - LICENSE
+      - config.json
+      - consolidated.safetensors.index.json
+      - generation_config.json
+      - model.safetensors.index.json
+      - params.json
+      - tekken.json
+      - tokenizer.json
+      - tokenizer_config.json

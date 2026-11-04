@@ -1,0 +1,134 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: MiniMax H3
+  logo: minimax-color.svg
+  short_description: >-
+    MiniMax's 33B omni-modal model generating synchronized video + native stereo audio in one pass.
+    Initial server API supports text-to-video; first/last-frame inputs are deferred. Official
+    diffusers checkpoint quantized to FP8 at load (diffusers + torchao), all components resident, NO
+    offload, on a single RTX PRO 6000 Blackwell. NOT for EU/UK/US/KR nodes (license).
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 100931731456
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: diffusers-torchao
+  compose: compose.yaml
+
+api:
+  routing_model_id: minimax-h3
+  passthrough:
+  - path_prefix: /{routing_model_id}
+    container: inference
+    port: 8000
+    openapi: api/generate.yaml
+    endpoints:
+    - POST /generate
+    smoke_test:
+      request:
+        headers:
+          Content-Type: application/json
+        body:
+          prompt: A red fox trotting through a snowy pine forest, snow crunching underfoot
+          seed: 42
+          height: 544
+          width: 960
+          num_frames: 124
+          num_inference_steps: 8
+      expect:
+        status: 200
+
+model:
+  released_at: '2026-08-02'
+  parameter_count: 33000000000
+  weights_disk_size_bytes: 144020990853
+  license:
+    expression: LicenseRef-MiniMax-H3-Community-License
+    name: MiniMax H3 Community License Agreement
+    url: https://huggingface.co/MiniMaxAI/MiniMax-H3/raw/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: bfloat16
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+  weights:
+    main:
+      provider: huggingface
+      repository: MiniMaxAI/MiniMax-H3
+      revision: 42ed227ee7df40d41602854ae760620d6eb651fe
+      files:
+      - audio_scheduler/scheduler_config.json
+      - audio_vae/config.json
+      - audio_vae/diffusion_pytorch_model.safetensors
+      - model_index.json
+      - modular_model_index.json
+      - processor/chat_template.json
+      - processor/merges.txt
+      - processor/preprocessor_config.json
+      - processor/tokenizer.json
+      - processor/tokenizer_config.json
+      - processor/video_preprocessor_config.json
+      - processor/vocab.json
+      - scheduler/scheduler_config.json
+      - text_encoder/chat_template.json
+      - text_encoder/config.json
+      - text_encoder/merges.txt
+      - text_encoder/model-00001-of-00014.safetensors
+      - text_encoder/model-00002-of-00014.safetensors
+      - text_encoder/model-00003-of-00014.safetensors
+      - text_encoder/model-00004-of-00014.safetensors
+      - text_encoder/model-00005-of-00014.safetensors
+      - text_encoder/model-00006-of-00014.safetensors
+      - text_encoder/model-00007-of-00014.safetensors
+      - text_encoder/model-00008-of-00014.safetensors
+      - text_encoder/model-00009-of-00014.safetensors
+      - text_encoder/model-00010-of-00014.safetensors
+      - text_encoder/model-00011-of-00014.safetensors
+      - text_encoder/model-00012-of-00014.safetensors
+      - text_encoder/model-00013-of-00014.safetensors
+      - text_encoder/model-00014-of-00014.safetensors
+      - text_encoder/model.safetensors.index.json
+      - text_encoder/preprocessor_config.json
+      - text_encoder/tokenizer.json
+      - text_encoder/tokenizer_config.json
+      - text_encoder/video_preprocessor_config.json
+      - text_encoder/vocab.json
+      - tokenizer/merges.txt
+      - tokenizer/tokenizer.json
+      - tokenizer/tokenizer_config.json
+      - tokenizer/vocab.json
+      - transformer/config.json
+      - transformer/diffusion_pytorch_model-00001-of-00014.safetensors
+      - transformer/diffusion_pytorch_model-00002-of-00014.safetensors
+      - transformer/diffusion_pytorch_model-00003-of-00014.safetensors
+      - transformer/diffusion_pytorch_model-00004-of-00014.safetensors
+      - transformer/diffusion_pytorch_model-00005-of-00014.safetensors
+      - transformer/diffusion_pytorch_model-00006-of-00014.safetensors
+      - transformer/diffusion_pytorch_model-00007-of-00014.safetensors
+      - transformer/diffusion_pytorch_model-00008-of-00014.safetensors
+      - transformer/diffusion_pytorch_model-00009-of-00014.safetensors
+      - transformer/diffusion_pytorch_model-00010-of-00014.safetensors
+      - transformer/diffusion_pytorch_model-00011-of-00014.safetensors
+      - transformer/diffusion_pytorch_model-00012-of-00014.safetensors
+      - transformer/diffusion_pytorch_model-00013-of-00014.safetensors
+      - transformer/diffusion_pytorch_model-00014-of-00014.safetensors
+      - transformer/diffusion_pytorch_model.safetensors.index.json
+      - vae/config.json
+      - vae/diffusion_pytorch_model-00001-of-00003.safetensors
+      - vae/diffusion_pytorch_model-00002-of-00003.safetensors
+      - vae/diffusion_pytorch_model-00003-of-00003.safetensors
+      - vae/diffusion_pytorch_model.safetensors.index.json

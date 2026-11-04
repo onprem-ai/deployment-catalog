@@ -1,0 +1,42 @@
+openapi: 3.1.0
+info:
+  title: Publisher-maintained PaddleOCR-VL layout-parsing contract
+  version: "1.5"
+  description: >-
+    Bounded compatibility description of the pipeline's document-parsing
+    endpoint, maintained by the profile publisher.
+paths:
+  /layout-parsing:
+    post:
+      summary: Parse one document image into structured Markdown and JSON
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [file, fileType]
+              properties:
+                file:
+                  type: string
+                  description: Base64-encoded image bytes
+                fileType:
+                  type: integer
+                  description: The image's file type code
+      responses:
+        "200":
+          description: Layout-parsing results with markdown and bounding boxes
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [result]
+                properties:
+                  result:
+                    type: object
+  /health:
+    get:
+      summary: The pipeline's readiness signal
+      responses:
+        "200":
+          description: The pipeline answers

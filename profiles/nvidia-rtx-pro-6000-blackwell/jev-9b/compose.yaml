@@ -1,0 +1,91 @@
+services:
+  inference:
+    # vLLM v0.31.0 registers Qwen3_5ForCausalLM with LoRA on lm_head and accepts
+    # --logprobs-mode and --mamba-cache-mode, the features the model card requires. The
+    # multi-arch manifest is pinned so the packaged image cannot change upstream.
+    image: vllm/vllm-openai:v0.31.0@sha256:c1c9f6fd5c109ba7f0546a59f5b2f15fb87f64c77782e90a27b648b42a8e67c3
+    # That image's ENTRYPOINT is `vllm serve`, so the command is serve's own
+    # arguments: the model positional, then the flags as list items.
+    #
+    # Two systems, one engine: `jev-9b` is the unmodified Qwen3.5-9B (System 2,
+    # generation and reasoning); the LoRA module `jev-9b-decision` carries the
+    # decision adapter and head (System 1, one prefill pass, read back as
+    # log-probabilities). --logprobs-mode processed_logprobs is required so the
+    # returned log-probabilities respect allowed_token_ids. The KV cache stays bf16:
+    # System 1 output is a probability distribution, and the card's fidelity
+    # measurements were taken without KV quantization.
+    command:
+      - /models/model
+      - --served-model-name
+      - jev-9b
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --gpu-memory-utilization
+      - "0.31"
+      - --max-model-len
+      - "32768"
+      - --max-num-seqs
+      - "64"
+      - --max-num-batched-tokens
+      - "8192"
+      - --enable-lora
+      - --max-loras
+      - "1"
+      - --max-lora-rank
+      - "32"
+      - --lora-modules
+      - jev-9b-decision=/models/model/adapter_vllm
+      - --logprobs-mode
+      - processed_logprobs
+      - --enable-prefix-caching
+      - --mamba-cache-mode
+      - align
+      - --reasoning-parser
+      - qwen3
+      - --enable-auto-tool-choice
+      - --tool-call-parser
+      - qwen3_coder
+      - --chat-template
+      - /models/model/chat_template.jinja
+      - --middleware
+      - decisions_middleware.decisions
+    # Typed decisions (POST /v1/decisions): the profile's own middleware, loaded by
+    # vLLM's --middleware from the container files, answers them through the decision
+    # module above with the decision head and calibration in decision-head.json;
+    # every other request passes to vLLM untouched.
+    environment:
+      PYTHONPATH: /opt/profile-files
+      DECISIONS_MODULE: jev-9b-decision
+      DECISIONS_PARAMETERS_FILE: /opt/profile-files/decision-head.json
+    volumes:
+      - model:/models/model:ro
+      - ./container-files:/opt/profile-files:ro
+    expose:
+      - "8080"
+    # Start-up takes 3-8 minutes per the model card (CUDA graph capture with LoRA).
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 180s
+    shm_size: 8gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "1"
+          memory: 4G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "8"
+          memory: 16G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

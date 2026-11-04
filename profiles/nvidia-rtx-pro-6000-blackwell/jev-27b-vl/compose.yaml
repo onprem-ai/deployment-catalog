@@ -1,0 +1,97 @@
+services:
+  inference:
+    # vLLM v0.31.0 registers Qwen3_5ForConditionalGeneration (the multimodal
+    # Qwen3.8 class, LoRA-capable through Qwen3VLForConditionalGeneration) and
+    # accepts --logprobs-mode and --mamba-cache-mode. The multi-arch manifest is
+    # pinned so the packaged image cannot change upstream.
+    image: vllm/vllm-openai:v0.31.0@sha256:c1c9f6fd5c109ba7f0546a59f5b2f15fb87f64c77782e90a27b648b42a8e67c3
+    # That image's ENTRYPOINT is `vllm serve`, so the command is serve's own
+    # arguments: the model positional, then the flags as list items.
+    #
+    # Two systems, one engine: `jev-27b-vl` is the unmodified multimodal
+    # Qwen3.8-27B (System 2); the LoRA module `jev-27b-vl-decision` carries the
+    # decision adapter and head (System 1). --logprobs-mode processed_logprobs is
+    # required so returned log-probabilities respect allowed_token_ids, and a
+    # System 1 request must send top_k 0 and top_p 1.0, because the model's
+    # generation config sets top_k 20 and top_p 0.95 as request defaults.
+    #
+    # --max-num-seqs 8 is required: with more than 8 sequences in one batch, the
+    # LoRA path of this multimodal model class returns wrong System 1
+    # probabilities (model card); requests beyond 8 queue.
+    # --trust-request-chat-template lets image decisions send the raw decision
+    # template; System 2 uses the bundled chat template.
+    command:
+      - /models/model
+      - --served-model-name
+      - jev-27b-vl
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --gpu-memory-utilization
+      - "0.785"
+      - --max-model-len
+      - "32768"
+      - --max-num-seqs
+      - "8"
+      - --enable-lora
+      - --max-loras
+      - "1"
+      - --max-lora-rank
+      - "32"
+      - --lora-modules
+      - jev-27b-vl-decision=/models/model/adapter_vllm
+      - --logprobs-mode
+      - processed_logprobs
+      - --enable-prefix-caching
+      - --mamba-cache-mode
+      - align
+      - --limit-mm-per-prompt
+      - '{"image": 8, "video": 0}'
+      - --trust-request-chat-template
+      - --reasoning-parser
+      - qwen3
+      - --enable-auto-tool-choice
+      - --tool-call-parser
+      - qwen3_coder
+      - --chat-template
+      - /models/model/chat_template.jinja
+      - --middleware
+      - decisions_middleware.decisions
+    # Typed decisions (POST /v1/decisions): the profile's own middleware, loaded by
+    # vLLM's --middleware from the container files, answers them through the decision
+    # module above with the decision head and calibration in decision-head.json;
+    # every other request passes to vLLM untouched.
+    environment:
+      PYTHONPATH: /opt/profile-files
+      DECISIONS_MODULE: jev-27b-vl-decision
+      DECISIONS_PARAMETERS_FILE: /opt/profile-files/decision-head.json
+    volumes:
+      - model:/models/model:ro
+      - ./container-files:/opt/profile-files:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 90
+      start_period: 300s
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "16"
+          memory: 32G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

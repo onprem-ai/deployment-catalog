@@ -1,0 +1,87 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Qwen3 Coder Next
+  subtitle: NVFP4 by RedHatAI
+  logo: qwen.svg
+  short_description: >-
+    Alibaba's specialized coding agent model with NVFP4 quantization by RedHatAI. 80B total params
+    with 3B activated (MoE). Hybrid DeltaNet+Attention architecture. Optimized for NVIDIA Blackwell
+    GPUs.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 71940702208
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: qwen3-coder-next-80b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2026-02-03'
+  parameter_count: 80000000000
+  active_parameter_count: 3000000000
+  weights_disk_size_bytes: 48318382080
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
+    file: licenses/source-0-LICENSE.txt
+  mixture_of_experts: true
+  format: safetensors
+  quantization: nvfp4-pack-quantized
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 262144
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: RedHatAI--Qwen3-Coder-Next-NVFP4--model
+      files:
+      - added_tokens.json
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - model-00001-of-00010.safetensors
+      - model-00002-of-00010.safetensors
+      - model-00003-of-00010.safetensors
+      - model-00004-of-00010.safetensors
+      - model-00005-of-00010.safetensors
+      - model-00006-of-00010.safetensors
+      - model-00007-of-00010.safetensors
+      - model-00008-of-00010.safetensors
+      - model-00009-of-00010.safetensors
+      - model-00010-of-00010.safetensors
+      - model.safetensors.index.json
+      - special_tokens_map.json
+      - tokenizer.json
+      - tokenizer_config.json
+      - vocab.json

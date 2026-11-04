@@ -1,0 +1,74 @@
+services:
+  inference:
+    image: verdictai/glm53-flash-exl3-k4:r19-sm120-tp2-ep2-dcp2-v84-language-only@sha256:0f1cdcc8891f1cc3a444121eb61d366289a1cbba285f0892dcbb24bc94961692
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        set -euo pipefail
+        exec /opt/venv/bin/vllm serve /models/model \
+          --served-model-name glm-5.3-flash-exl3-4bpw \
+          --host 0.0.0.0 --port 8080 \
+          --language-model-only \
+          --tensor-parallel-size 2 \
+          --enable-expert-parallel \
+          --decode-context-parallel-size 2 \
+          --dcp-comm-backend a2a \
+          --dtype bfloat16 \
+          --load-format safetensors \
+          --moe-backend b12x \
+          --attention-backend B12X_MLA_SPARSE \
+          --kv-cache-dtype nvfp4_ds_mla \
+          --max-model-len 131072 \
+          --max-num-batched-tokens 2048 \
+          --max-num-seqs 1 \
+          --gpu-memory-utilization 0.98 \
+          --enable-chunked-prefill \
+          --no-enable-prefix-caching \
+          --generation-config /models/model \
+          --reasoning-parser glm45 \
+          --tool-call-parser glm47 \
+          --enable-auto-tool-choice \
+          --disable-custom-all-reduce \
+          --speculative-config '{"method":"mtp","num_speculative_tokens":3,"draft_sample_method":"probabilistic"}'
+
+    environment:
+      B12X_GL53_ROUTE128_HYBRID_TAIL: "1"
+      B12X_GL53_ROUTE128_WIDE: "1"
+      KV_FP8_ROPE: "0"
+      NCCL_IB_DISABLE: "1"
+      NCCL_P2P_LEVEL: "4"
+      OMP_NUM_THREADS: "2"
+      VLLM_B12X_GLM_NOPE_NVFP4: "1"
+      VLLM_ENABLE_PCIE_ALLREDUCE: "1"
+      VLLM_ENGINE_READY_TIMEOUT_S: "3600"
+      VLLM_EXL3_PREFILL_BLOCK_M: "128"
+      VLLM_EXL3_PREFILL_TRELLIS: "1"
+      VLLM_NVFP4_MLA_DYNAMIC_SCALE: "0"
+      VLLM_NVFP4_MLA_SCALES_FILE: "/opt/glm53/calibration/glm53_nvfp4_mla_outer_scales_mtp_power2_v2.json"
+      VLLM_PCIE_ALLREDUCE_BACKEND: "cpp"
+      VLLM_USE_B12X_DCP_A2A: "1"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '2'
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 2
+              capabilities: [gpu]
+        limits:
+          cpus: '8'
+          memory: 32G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

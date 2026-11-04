@@ -1,0 +1,97 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Nemotron-3 Super 120B
+  subtitle: NVFP4
+  logo: nvidia.svg
+  short_description: >-
+    NVIDIA's flagship MoE model with NVFP4 quantization. 120B total params with 12B activated (MTP
+    architecture). Thinking mode with <think> blocks. Optimized for NVIDIA Blackwell GPUs.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 96636764160
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: nemotron-3-super-120b-a12b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2026-03-11'
+  parameter_count: 120000000000
+  active_parameter_count: 12000000000
+  weights_disk_size_bytes: 80530636800
+  license:
+    expression: LicenseRef-NVIDIA-Nemotron-Open-Model-License
+    name: NVIDIA Nemotron Open Model License
+    url: https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/
+    file: licenses/source-0-LICENSE.md
+  mixture_of_experts: true
+  format: safetensors
+  quantization: nvfp4
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 262144
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: nvidia--NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4--model
+      files:
+      - __init__.py
+      - chat_template.jinja
+      - config.json
+      - configuration_nemotron_h.py
+      - generation_config.json
+      - hf_quant_config.json
+      - model-00001-of-00017.safetensors
+      - model-00002-of-00017.safetensors
+      - model-00003-of-00017.safetensors
+      - model-00004-of-00017.safetensors
+      - model-00005-of-00017.safetensors
+      - model-00006-of-00017.safetensors
+      - model-00007-of-00017.safetensors
+      - model-00008-of-00017.safetensors
+      - model-00009-of-00017.safetensors
+      - model-00010-of-00017.safetensors
+      - model-00011-of-00017.safetensors
+      - model-00012-of-00017.safetensors
+      - model-00013-of-00017.safetensors
+      - model-00014-of-00017.safetensors
+      - model-00015-of-00017.safetensors
+      - model-00016-of-00017.safetensors
+      - model-00017-of-00017.safetensors
+      - model.safetensors.index.json
+      - modeling_nemotron_h.py
+      - special_tokens_map.json
+      - super_v3_reasoning_parser.py
+      - tokenizer.json
+      - tokenizer_config.json

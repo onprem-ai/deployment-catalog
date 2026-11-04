@@ -1,0 +1,84 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Apertus v1.5 8B
+  subtitle: NVFP4
+  logo: swiss-ai.svg
+  short_description: >-
+    Mixed NVFP4, FP8, and BF16 quantization of Apertus v1.5 8B for multimodal chat on one RTX PRO
+    6000 Blackwell GPU.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 26843545600
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: apertus-v1.5-8b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  creator: Swiss AI Initiative
+  homepage: https://www.apertus-ai.org/articles/2026-07-apertus-1-5/
+  released_at: '2026-07-24'
+  parameter_count: 8300000000
+  architecture: dense
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/onprem-ai/Apertus-v1.5-8B-NVFP4/resolve/ac39f47d3672b4e10be215dd47b7ace4f0c290db/LICENSE.txt
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: nvfp4-fp8
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 131072
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: onprem-ai--Apertus-v1.5-8B-NVFP4--model-apertus-model
+      files:
+      - LICENSE.txt
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - model-apertus-model-00001-of-00004.safetensors
+      - model-apertus-model-00002-of-00004.safetensors
+      - model-apertus-model-00003-of-00004.safetensors
+      - model-apertus-model-00004-of-00004.safetensors
+      - model-vision_tokenizer-model.safetensors
+      - model-wavtokenizer-model.safetensors
+      - model.safetensors.index.json
+      - processor_config.json
+      - special_tokens_map.json
+      - tokenizer.json
+      - tokenizer_config.json

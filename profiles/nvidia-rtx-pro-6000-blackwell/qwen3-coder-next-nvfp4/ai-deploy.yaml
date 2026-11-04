@@ -1,0 +1,64 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Qwen3 Coder Next
+  subtitle: NVFP4 by GadflyII
+  logo: qwen.svg
+  short_description: >-
+    Alibaba's specialized coding agent model with NVFP4 quantization. 80B total params with 3B
+    activated (MoE). Hybrid DeltaNet+Attention architecture. Optimized for NVIDIA Blackwell GPUs.
+  maturity: deprecated
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 67645734912
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: qwen3-coder-next-80b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2026-02-03'
+  weights_disk_size_bytes: 48318382080
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/Qwen/Qwen3-Coder-Next/raw/a7fbcb5c0e12d62a448eaa0e260346bf5dcc0feb/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  mixture_of_experts: true
+  format: safetensors
+  quantization: nvfp4-pack-quantized
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 262144
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: GadflyII--Qwen3-Coder-Next-NVFP4--model

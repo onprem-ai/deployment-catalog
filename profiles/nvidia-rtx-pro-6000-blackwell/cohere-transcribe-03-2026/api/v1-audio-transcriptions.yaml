@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: Publisher-maintained Cohere Transcribe contract
+  version: '1'
+  description: Bounded compatibility description of this proxy entry's endpoint, maintained by the profile
+    publisher and generated from the entry's request example.
+paths:
+  /v1/audio/transcriptions:
+    post:
+      summary: Audio transcription (OpenAI-compatible multipart endpoint)

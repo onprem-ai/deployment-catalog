@@ -1,0 +1,87 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Z-Image-Turbo
+  short_description: >-
+    Alibaba's 6B Single-Stream DiT for text-to-image generation. CFG-free turbo model -- 8 sampling
+    steps for fast inference. #1 open-source on Artificial Analysis leaderboard (Dec 2025). Apache
+    2.0.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 23622320128
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: diffusers
+  compose: compose.yaml
+
+api:
+  routing_model_id: z-image-turbo
+  passthrough:
+  - path_prefix: /{routing_model_id}
+    container: inference
+    port: 8000
+    openapi: api/v1-images-generations.yaml
+    endpoints:
+    - POST /v1/images/generations
+    smoke_test:
+      request:
+        headers:
+          Content-Type: application/json
+        body:
+          prompt: A serene mountain landscape at sunset, photorealistic
+          n: 1
+          size: 512x512
+          response_format: b64_json
+      expect:
+        status: 200
+
+model:
+  released_at: '2025-11-27'
+  parameter_count: 6000000000
+  weights_disk_size_bytes: 35433480192
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: bf16
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+  weights:
+    main:
+      provider: onprem-ai
+      repository: Tongyi-MAI--Z-Image-Turbo--diffusion_pytorch_model
+      files:
+      - model_index.json
+      - scheduler/scheduler_config.json
+      - text_encoder/config.json
+      - text_encoder/generation_config.json
+      - text_encoder/model-00001-of-00003.safetensors
+      - text_encoder/model-00002-of-00003.safetensors
+      - text_encoder/model-00003-of-00003.safetensors
+      - text_encoder/model.safetensors.index.json
+      - tokenizer/merges.txt
+      - tokenizer/tokenizer.json
+      - tokenizer/tokenizer_config.json
+      - tokenizer/vocab.json
+      - transformer/config.json
+      - transformer/diffusion_pytorch_model-00001-of-00003.safetensors
+      - transformer/diffusion_pytorch_model-00002-of-00003.safetensors
+      - transformer/diffusion_pytorch_model-00003-of-00003.safetensors
+      - transformer/diffusion_pytorch_model.safetensors.index.json
+      - vae/config.json
+      - vae/diffusion_pytorch_model.safetensors

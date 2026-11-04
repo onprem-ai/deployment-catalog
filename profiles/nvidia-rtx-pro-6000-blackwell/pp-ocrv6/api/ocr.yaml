@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: Publisher-maintained PP-OCRv6 Medium contract
+  version: '1'
+  description: Bounded compatibility description of this proxy entry's endpoint, maintained by the profile
+    publisher and generated from the entry's request example.
+paths:
+  /ocr:
+    post:
+      summary: PP-OCRv6 medium text detection and recognition

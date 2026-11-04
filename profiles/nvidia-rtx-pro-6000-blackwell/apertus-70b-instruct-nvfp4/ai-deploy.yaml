@@ -1,0 +1,78 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Apertus 70B Instruct
+  subtitle: NVFP4
+  logo: swiss-ai.svg
+  short_description: >-
+    Swiss AI's multilingual 70B dense transformer (1,811 languages) with NVFP4 W4A4 quantization. EU
+    AI Act compliant, fully open training data and weights.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 69793218560
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: apertus-70b-instruct
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2025-09-01'
+  parameter_count: 70000000000
+  weights_disk_size_bytes: 42949672960
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/bg-digitalservices/Apertus-70B-Instruct-2509-NVFP4/resolve/58da8e79635b4ac8f8c0800210292a78a442c33e/LICENSE.txt
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: nvfp4-modelopt
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 65536
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: bg-digitalservices--Apertus-70B-Instruct-2509-NVFP4--model
+      files:
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - hf_quant_config.json
+      - model-00001-of-00005.safetensors
+      - model-00002-of-00005.safetensors
+      - model-00003-of-00005.safetensors
+      - model-00004-of-00005.safetensors
+      - model-00005-of-00005.safetensors
+      - model.safetensors.index.json
+      - special_tokens_map.json
+      - tokenizer.json
+      - tokenizer_config.json

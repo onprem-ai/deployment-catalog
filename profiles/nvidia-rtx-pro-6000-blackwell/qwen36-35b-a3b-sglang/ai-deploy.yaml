@@ -1,0 +1,83 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Qwen3.6 35B-A3B
+  subtitle: SGLang · MTP
+  logo: qwen.svg
+  short_description: >-
+    Same Qwen3.6 35B-A3B NVFP4 weights as the vLLM entry, served by SGLang with
+    --mamba-scheduler-strategy extra_buffer. Enables radix prefix caching for hybrid GDN models, the
+    overlap scheduler, and EAGLE speculative decoding running concurrently with the radix cache.
+    1.5x faster decode than vLLM sibling (298 vs 195 tok/s) but slower prefill. Best for
+    chat/interactive workloads.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 56908316672
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: sglang
+  compose: compose.yaml
+
+api:
+  routing_model_id: qwen36-35b-a3b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2026-04-17'
+  parameter_count: 35000000000
+  active_parameter_count: 3000000000
+  weights_disk_size_bytes: 25769803776
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
+    file: licenses/source-0-LICENSE.txt
+  mixture_of_experts: true
+  format: safetensors
+  quantization: nvfp4-pack-quantized
+  speculative_decoding: mtp
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 262144
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: RedHatAI--Qwen3.6-35B-A3B-NVFP4--model
+      files:
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - model.safetensors
+      - model.safetensors.index.json
+      - model_mtp.safetensors
+      - model_visual.safetensors
+      - processor_config.json
+      - tokenizer.json
+      - tokenizer_config.json

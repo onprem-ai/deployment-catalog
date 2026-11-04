@@ -1,0 +1,47 @@
+services:
+  inference:
+    image: vllm/vllm-openai:dig-a230095847e93bd4@sha256:a230095847e93bd4df9888b33dab956fa9504537b828a23657d2b26fed57b5c9
+    # Off on purpose: this model is hybrid (linear attention or Mamba layers with full
+    # attention), and at this vLLM version prefix caching for hybrid models is
+    # experimental. Switch it on when the profile moves to vLLM 0.27 or newer and a run
+    # on the hardware confirms it.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        python3 -m vllm.entrypoints.openai.api_server \
+          --model /models/model \
+          --served-model-name chandra-ocr-2 \
+          --host 0.0.0.0 --port 8080 \
+          --no-enable-prefix-caching \
+          --trust-remote-code \
+          --gpu-memory-utilization 0.16 \
+          --max-num-batched-tokens 4096 \
+          --max-model-len 32768 --max-num-seqs 128 \
+          --kv-cache-dtype fp8_e5m2 \
+          --tensor-parallel-size 1
+
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 4G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '8'
+          memory: 16G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

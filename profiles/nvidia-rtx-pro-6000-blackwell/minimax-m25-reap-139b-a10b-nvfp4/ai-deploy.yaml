@@ -1,0 +1,97 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: MiniMax M2.5 REAP 139B
+  subtitle: NVFP4
+  logo: moonshot.svg
+  short_description: >-
+    MiniMax's efficient MoE model with NVFP4 quantization. 139B total params with 10B activated.
+    REAP variant optimized for reasoning. Optimized for NVIDIA Blackwell GPUs.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 100931731456
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: minimax-m25-reap-139b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2026-03-15'
+  parameter_count: 139000000000
+  active_parameter_count: 10000000000
+  weights_disk_size_bytes: 80530636800
+  license:
+    expression: LicenseRef-MiniMax-M2.5-Model-License
+    name: MiniMax Model License
+    url: https://huggingface.co/MiniMaxAI/MiniMax-M2.5/raw/f710177d938eff80b684d42c5aa84b382612f21f/LICENSE-MODEL
+    file: licenses/source-0-LICENSE.txt
+  mixture_of_experts: true
+  format: safetensors
+  quantization: nvfp4
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 8192
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: saricles--MiniMax-M2.5-REAP-139B-A10B-NVFP4-GB10--model
+      files:
+      - added_tokens.json
+      - chat_template.jinja
+      - config.json
+      - configuration_minimax_m2.py
+      - generation_config.json
+      - merges.txt
+      - model-00001-of-00017.safetensors
+      - model-00002-of-00017.safetensors
+      - model-00003-of-00017.safetensors
+      - model-00004-of-00017.safetensors
+      - model-00005-of-00017.safetensors
+      - model-00006-of-00017.safetensors
+      - model-00007-of-00017.safetensors
+      - model-00008-of-00017.safetensors
+      - model-00009-of-00017.safetensors
+      - model-00010-of-00017.safetensors
+      - model-00011-of-00017.safetensors
+      - model-00012-of-00017.safetensors
+      - model-00013-of-00017.safetensors
+      - model-00014-of-00017.safetensors
+      - model-00015-of-00017.safetensors
+      - model-00016-of-00017.safetensors
+      - model-00017-of-00017.safetensors
+      - model.safetensors.index.json
+      - modeling_minimax_m2.py
+      - special_tokens_map.json
+      - tokenizer.json
+      - tokenizer_config.json
+      - vocab.json

@@ -1,0 +1,50 @@
+services:
+  inference:
+    image: vllm/vllm-openai:v0.17.1-cu130@sha256:bbeaaf81ba5704c30f6b87a5df5b10b930d97e916fc98c825d3ad30806e9638b
+    # Prefix caching stated, not left to the engine default: a repeated system prompt or
+    # conversation is not prefilled again. On for this model on every vLLM version;
+    # stated so a newer engine cannot change it unseen.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        python3 -m vllm.entrypoints.openai.api_server \
+          --model /models/model \
+          --served-model-name minimax-m25-reap-139b \
+          --host 0.0.0.0 --port 8080 \
+          --enable-prefix-caching \
+          --trust-remote-code \
+          --gpu-memory-utilization 0.98 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 4096 \
+          --max-model-len 12288 --enforce-eager \
+          --quantization compressed-tensors \
+          --enable-auto-tool-choice \
+          --tool-call-parser hermes
+
+    environment:
+      VLLM_FLASHINFER_MOE_BACKEND: "latency"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 4G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '4'
+          memory: 8G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

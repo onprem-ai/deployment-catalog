@@ -1,0 +1,54 @@
+services:
+  inference:
+    image: vllm/vllm-openai:v0.19.0-cu130@sha256:12b3d2089d9d2cc1435595c179e25cac1ed187332dfe44246eefe0bd522bec4d
+    # Off on purpose: this model is hybrid (linear attention or Mamba layers with full
+    # attention), and at this vLLM version prefix caching for hybrid models is
+    # experimental. Switch it on when the profile moves to vLLM 0.27 or newer and a run
+    # on the hardware confirms it.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        python3 -m vllm.entrypoints.openai.api_server \
+          --model /models/model \
+          --served-model-name qwen3-coder-next-80b \
+          --host 0.0.0.0 --port 8080 \
+          --no-enable-prefix-caching \
+          --trust-remote-code \
+          --gpu-memory-utilization 0.70 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 4096 \
+          --max-model-len 262144 --kv-cache-dtype fp8 \
+          --quantization compressed-tensors \
+          --enable-auto-tool-choice \
+          --tool-call-parser qwen3_coder \
+          --chat-template /models/model/chat_template.jinja \
+          --max-cudagraph-capture-size 128
+
+    environment:
+      VLLM_FLASHINFER_MOE_BACKEND: "latency"
+      VLLM_FLASHINFER_WORKSPACE_BUFFER_SIZE: "629145600"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 4G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '4'
+          memory: 8G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

@@ -1,0 +1,91 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: FLUX.2-dev
+  logo: black-forest-labs-logo.svg
+  short_description: >-
+    Black Forest Labs' 32B rectified flow transformer for text-to-image generation. NF4-quantized
+    transformer and Mistral3 text encoder via bitsandbytes. Generates photorealistic images from
+    text prompts.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 36507222016
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: diffusers
+  compose: compose.yaml
+
+api:
+  routing_model_id: flux2-dev
+  passthrough:
+  - path_prefix: /{routing_model_id}
+    container: inference
+    port: 8000
+    openapi: api/v1-images-generations.yaml
+    endpoints:
+    - POST /v1/images/generations
+    smoke_test:
+      request:
+        headers:
+          Content-Type: application/json
+        body:
+          prompt: A serene mountain landscape at sunset, photorealistic
+          n: 1
+          size: 1024x1024
+          response_format: b64_json
+      expect:
+        status: 200
+
+model:
+  released_at: '2025-04-01'
+  parameter_count: 32000000000
+  weights_disk_size_bytes: 34359738368
+  license:
+    expression: LicenseRef-FLUX-Non-Commercial-2.1
+    name: FLUX Non-Commercial License 2.1
+    url: https://huggingface.co/black-forest-labs/FLUX.2-dev/resolve/26afe3a78bb242c0a8bb181dcc8937bb16e5c66c/LICENSE.md
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: bnb-nf4
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+  weights:
+    main:
+      provider: huggingface
+      repository: diffusers/FLUX.2-dev-bnb-4bit
+      revision: c30ad107542e63f222f864a8de510204394fb18a
+      files:
+      - model_index.json
+      - scheduler/scheduler_config.json
+      - text_encoder/config.json
+      - text_encoder/generation_config.json
+      - text_encoder/model-00001-of-00004.safetensors
+      - text_encoder/model-00002-of-00004.safetensors
+      - text_encoder/model-00003-of-00004.safetensors
+      - text_encoder/model-00004-of-00004.safetensors
+      - text_encoder/model.safetensors.index.json
+      - tokenizer/chat_template.jinja
+      - tokenizer/preprocessor_config.json
+      - tokenizer/processor_config.json
+      - tokenizer/special_tokens_map.json
+      - tokenizer/tokenizer.json
+      - tokenizer/tokenizer_config.json
+      - transformer/config.json
+      - transformer/diffusion_pytorch_model-00001-of-00002.safetensors
+      - transformer/diffusion_pytorch_model-00002-of-00002.safetensors
+      - transformer/diffusion_pytorch_model.safetensors.index.json
+      - vae/config.json
+      - vae/diffusion_pytorch_model.safetensors

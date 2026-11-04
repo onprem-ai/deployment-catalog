@@ -1,0 +1,69 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: GLM 5.2
+  subtitle: NVFP4 · SGLang
+  logo: zhipu.svg
+  short_description: >-
+    Zhipu AI's flagship MoE model with IndexShare sparse attention and solid 1M-token context. 256
+    experts (8 active), reasoning, tool calling, and MTP speculative decoding. NVFP4 quantized by
+    NVIDIA. MIT licensed.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 4
+    memory_bytes_per_device: 96636764160
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: sglang
+  compose: compose.yaml
+
+api:
+  routing_model_id: glm-5-2
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2026-06-16'
+  parameter_count: 750000000000
+  active_parameter_count: 24000000000
+  weights_disk_size_bytes: 472446402560
+  license:
+    expression: MIT
+    name: MIT License
+    url: https://huggingface.co/zai-org/GLM-5.2/resolve/b4734de4facf877f85769a911abafc5283eab3d9/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  mixture_of_experts: true
+  format: safetensors
+  quantization: nvfp4
+  speculative_decoding: mtp
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 1048576
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: nvidia--GLM-5.2-NVFP4--model

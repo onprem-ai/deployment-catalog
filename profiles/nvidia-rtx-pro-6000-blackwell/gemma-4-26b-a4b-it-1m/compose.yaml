@@ -1,0 +1,52 @@
+services:
+  inference:
+    image: onpremai/llama-cpp-turboquant:latest@sha256:ecc8ac1f847c00fca2f77213c1d8ad5f03194e98070d89fc1af1f03f46aaca3c
+    command:
+      - -m
+      - /models/model/gemma-4-26B-A4B-it-MXFP4_MOE.gguf
+      - --host
+      - 0.0.0.0
+      - --port
+      - '8080'
+      - -ngl
+      - '99'
+      - -fa
+      - 'on'
+      - -ctk
+      - turbo3
+      - -ctv
+      - turbo3
+      - -c
+      - '1048576'
+      - -ub
+      - '8192'
+      - -b
+      - '8192'
+      - --parallel
+      - '1'
+      - --jinja
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 4G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '4'
+          memory: 8G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

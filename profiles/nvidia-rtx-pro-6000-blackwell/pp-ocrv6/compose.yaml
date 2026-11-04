@@ -1,0 +1,79 @@
+services:
+  inference:
+    image: onpremai/pp-ocrv6-server:3.7.0@sha256:272a3b71d2843e031cb60730c912d2a9910dbde30ebde0a2913bb4e8d8c887fe
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        set -euo pipefail
+
+        # Explicit local model directories make startup deterministic and
+        # air-gap safe; PaddleX must not resolve or download models here.
+        cat > /tmp/ocr_pipeline.yaml << 'PIPELINEEOF'
+        pipeline_name: OCR
+        text_type: general
+        use_doc_preprocessor: False
+        use_textline_orientation: False
+
+        SubModules:
+          TextDetection:
+            module_name: text_detection
+            model_name: PP-OCRv6_medium_det
+            model_dir: /models/detection
+            limit_side_len: 64
+            limit_type: min
+            max_side_limit: 4000
+            thresh: 0.3
+            box_thresh: 0.6
+            unclip_ratio: 1.5
+          TextRecognition:
+            module_name: text_recognition
+            model_name: PP-OCRv6_medium_rec
+            model_dir: /models/recognition
+            batch_size: 6
+            score_thresh: 0.0
+
+        Serving:
+          visualize: False
+          extra:
+            max_num_input_imgs: null
+        PIPELINEEOF
+
+        exec paddlex --serve \
+          --pipeline /tmp/ocr_pipeline.yaml \
+          --device gpu:0 \
+          --host 0.0.0.0 \
+          --port 8080
+
+    environment:
+      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+      NVIDIA_VISIBLE_DEVICES: "all"
+      PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK: "True"
+    volumes:
+      - detection:/models/detection:ro
+      - recognition:/models/recognition:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 2G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '8'
+          memory: 8G
+
+volumes:
+  detection:
+    x-ai-deploy:
+      weights: detection
+  recognition:
+    x-ai-deploy:
+      weights: recognition

@@ -1,0 +1,74 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Apertus 8B Instruct
+  subtitle: FP8
+  logo: swiss-ai.svg
+  short_description: >-
+    Swiss AI's multilingual 8B dense transformer (1,811 languages) with FP8 W8A8 dynamic
+    quantization by Red Hat AI. EU AI Act compliant, fully open training data and weights.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 25769803776
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: apertus-8b-instruct
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2025-09-18'
+  parameter_count: 8000000000
+  weights_disk_size_bytes: 9663676416
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: fp8-compressed-tensors
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 65536
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: RedHatAI--Apertus-8B-Instruct-2509-FP8-dynamic--model
+      files:
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - model-00001-of-00002.safetensors
+      - model-00002-of-00002.safetensors
+      - model.safetensors.index.json
+      - special_tokens_map.json
+      - tokenizer.json
+      - tokenizer_config.json

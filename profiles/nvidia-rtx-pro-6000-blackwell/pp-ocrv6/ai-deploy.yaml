@@ -1,0 +1,83 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: PP-OCRv6 Medium
+  logo: paddre-ocr.svg
+  short_description: >-
+    Baidu's 34.5M-parameter traditional OCR pipeline for fast text detection and recognition. One
+    recognition model supports 50 languages and is optimized for general and industrial text,
+    including displays, dot-matrix characters, and tire printing. Prefer PaddleOCR-VL for structured
+    document layout, tables, formulas, charts, and Markdown generation. Endpoint: POST /ocr with a
+    base64 image or URL.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 1073741824
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: paddleocr
+  compose: compose.yaml
+
+api:
+  routing_model_id: pp-ocrv6
+  passthrough:
+  - path_prefix: /{routing_model_id}
+    container: inference
+    port: 8080
+    openapi: api/ocr.yaml
+    endpoints:
+    - POST /ocr
+    smoke_test:
+      request:
+        headers:
+          Content-Type: application/json
+        body:
+          file: iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==
+          fileType: 1
+          useDocOrientationClassify: false
+          useDocUnwarping: false
+          useTextlineOrientation: false
+          visualize: false
+      expect:
+        status: 200
+
+model:
+  released_at: '2026-06-11'
+  parameter_count: 34500000
+  weights_disk_size_bytes: 139586437
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
+    file: licenses/source-0-LICENSE.txt
+  format: other
+  quantization: paddle-static
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+  weights:
+    detection:
+      provider: onprem-ai
+      repository: PaddlePaddle--PP-OCRv6_medium_det--inference
+      files:
+      - inference.json
+      - inference.pdiparams
+      - inference.yml
+    recognition:
+      provider: onprem-ai
+      repository: PaddlePaddle--PP-OCRv6_medium_rec--inference
+      files:
+      - inference.json
+      - inference.pdiparams
+      - inference.yml

@@ -1,0 +1,70 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Hunyuan OCR
+  logo: hunyuan-color.svg
+  short_description: >-
+    Tencent's lightweight end-to-end OCR model (1B). Text spotting with coordinates, document
+    parsing (LaTeX/HTML/Mermaid), information extraction (JSON). 100+ languages, video subtitle
+    extraction. Only ~2 GiB weights.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 8589934592
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: hunyuan-ocr
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+
+model:
+  released_at: '2025-11-25'
+  parameter_count: 1000000000
+  weights_disk_size_bytes: 2147483648
+  license:
+    expression: LicenseRef-Tencent-Hunyuan-Community-License
+    name: Tencent Hunyuan Community License
+    url: https://huggingface.co/tencent/HunyuanOCR/resolve/449e7d471a8a1ef5bd5d652e4881183d7252cbc7/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: bfloat16
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 32768
+  weights:
+    main:
+      provider: huggingface
+      repository: tencent/HunyuanOCR
+      revision: 449e7d471a8a1ef5bd5d652e4881183d7252cbc7
+      files:
+      - LICENSE
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - model.safetensors
+      - preprocessor_config.json
+      - special_tokens_map.json
+      - tokenizer.json
+      - tokenizer_config.json
+      - video_preprocessor_config.json

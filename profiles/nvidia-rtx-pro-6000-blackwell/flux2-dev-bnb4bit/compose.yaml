@@ -1,0 +1,31 @@
+services:
+  inference:
+    image: onpremai/flux2-server:latest@sha256:71aef0362a646000271d0968fa0d2e624e977d4f09b35b34f8ad12c8b68d30fa
+    command:
+    environment:
+      MODEL_DIR: "/models"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8000/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '4'
+          memory: 3G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '8'
+          memory: 4G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

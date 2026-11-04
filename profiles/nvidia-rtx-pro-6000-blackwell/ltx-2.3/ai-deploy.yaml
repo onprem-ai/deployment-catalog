@@ -1,0 +1,52 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: LTX-2.3 (22B)
+  short_description: >-
+    Lightricks' 22B DiT audio-video generation model. Generates synchronized video and audio from
+    text prompts. Served via ltx-pipelines DistilledPipeline with FP8 quantization.
+  maturity: unsupported
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 85899345920
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: ltx-pipelines
+  compose: compose.yaml
+
+api:
+  routing_model_id: ltx-2.3
+  passthrough:
+  - path_prefix: /{routing_model_id}
+    container: inference
+    port: 8000
+
+model:
+  released_at: '2025-04-01'
+  parameter_count: 22000000000
+  weights_disk_size_bytes: 71940702208
+  license:
+    expression: LicenseRef-LTX-2-Community-License
+    name: LTX-2 Community License Agreement
+    url: https://huggingface.co/Lightricks/LTX-2.3/raw/6b5a83e3045eaf8e46cfa0acce512412aa2b9cce/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: safetensors
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+  weights:
+    main:
+      provider: onprem-ai
+      repository: Lightricks--LTX-2.3--ltx-2.3-22b-distilled-1.1

@@ -1,0 +1,59 @@
+services:
+  inference:
+    image: onpremai/llama-cpp-blackwell:2026.03.15@sha256:69143b44cc2235a34821fb9a38b6a1ff070a29819f44b9ad909a0f7e44567fc7
+    command:
+      - -m
+      - /models/model/Q8_0/Qwen3-Coder-Next-Q8_0-00001-of-00003.gguf
+      - --host
+      - 0.0.0.0
+      - --port
+      - '8080'
+      - -ngl
+      - '999'
+      - --flash-attn
+      - 'on'
+      - --no-mmap
+      - -c
+      - '262144'
+      - --cache-type-k
+      - q8_0
+      - --cache-type-v
+      - q8_0
+      - -b
+      - '4096'
+      - -ub
+      - '4096'
+      - --jinja
+      - --temp
+      - '0.7'
+      - --top-k
+      - '20'
+      - --top-p
+      - '0.8'
+      - --repeat-penalty
+      - '1.05'
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '4'
+          memory: 20G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

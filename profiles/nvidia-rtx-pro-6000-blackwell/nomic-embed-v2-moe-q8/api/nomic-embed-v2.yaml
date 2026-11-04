@@ -1,0 +1,20 @@
+openapi: 3.1.0
+info:
+  title: Publisher-maintained Nomic Embed v2 embeddings contract
+  version: "1"
+  description: >-
+    Bounded compatibility description of the embeddings endpoint, maintained by
+    the profile publisher.
+paths:
+  /v1/embeddings:
+    post:
+      summary: Embed one or more texts
+      responses:
+        "200":
+          description: The embedding vectors
+  /health:
+    get:
+      summary: The server's readiness signal
+      responses:
+        "200":
+          description: The server answers

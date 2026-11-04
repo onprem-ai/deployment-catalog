@@ -1,0 +1,121 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: DeepSeek V4 Flash 0731 Abliterated
+  subtitle: DSpark
+  logo: deepseek.svg
+  short_description: >-
+    Abliterated (decensored) rebuild of DeepSeek V4 Flash 0731 with DSpark speculative decoding.
+    284B total / 13B active params, native FP4 experts + FP8 block elsewhere, reasoning and tool
+    calling. Unsensored -- use responsibly. Runs tensor-parallel across both RTX 6000 Blackwell
+    GPUs. EXPERIMENTAL on this node.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 2
+    memory_bytes_per_device: 100931731456
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: deepseek-v4-flash
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+
+model:
+  released_at: '2026-08-01'
+  parameter_count: 284000000000
+  active_parameter_count: 13000000000
+  weights_disk_size_bytes: 163208757248
+  license:
+    expression: MIT
+    name: MIT License
+    url: https://huggingface.co/cebeuq/DeepSeek-V4-Flash-0731-abliterated/raw/21bd923c2574d9edcd7b914885024ce72fd5c076/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  mixture_of_experts: true
+  format: safetensors
+  quantization: fp8-block
+  speculative_decoding: dspark
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 1032192
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: cebeuq--DeepSeek-V4-Flash-0731-abliterated--model
+      files:
+      - LICENSE
+      - config.json
+      - encoding/encoding_dsv4.py
+      - generation_config.json
+      - model-00001-of-00048.safetensors
+      - model-00002-of-00048.safetensors
+      - model-00003-of-00048.safetensors
+      - model-00004-of-00048.safetensors
+      - model-00005-of-00048.safetensors
+      - model-00006-of-00048.safetensors
+      - model-00007-of-00048.safetensors
+      - model-00008-of-00048.safetensors
+      - model-00009-of-00048.safetensors
+      - model-00010-of-00048.safetensors
+      - model-00011-of-00048.safetensors
+      - model-00012-of-00048.safetensors
+      - model-00013-of-00048.safetensors
+      - model-00014-of-00048.safetensors
+      - model-00015-of-00048.safetensors
+      - model-00016-of-00048.safetensors
+      - model-00017-of-00048.safetensors
+      - model-00018-of-00048.safetensors
+      - model-00019-of-00048.safetensors
+      - model-00020-of-00048.safetensors
+      - model-00021-of-00048.safetensors
+      - model-00022-of-00048.safetensors
+      - model-00023-of-00048.safetensors
+      - model-00024-of-00048.safetensors
+      - model-00025-of-00048.safetensors
+      - model-00026-of-00048.safetensors
+      - model-00027-of-00048.safetensors
+      - model-00028-of-00048.safetensors
+      - model-00029-of-00048.safetensors
+      - model-00030-of-00048.safetensors
+      - model-00031-of-00048.safetensors
+      - model-00032-of-00048.safetensors
+      - model-00033-of-00048.safetensors
+      - model-00034-of-00048.safetensors
+      - model-00035-of-00048.safetensors
+      - model-00036-of-00048.safetensors
+      - model-00037-of-00048.safetensors
+      - model-00038-of-00048.safetensors
+      - model-00039-of-00048.safetensors
+      - model-00040-of-00048.safetensors
+      - model-00041-of-00048.safetensors
+      - model-00042-of-00048.safetensors
+      - model-00043-of-00048.safetensors
+      - model-00044-of-00048.safetensors
+      - model-00045-of-00048.safetensors
+      - model-00046-of-00048.safetensors
+      - model-00047-of-00048.safetensors
+      - model-00048-of-00048.safetensors
+      - model-overlay-00001-of-00001.safetensors
+      - model.safetensors.index.json
+      - tokenizer.json
+      - tokenizer_config.json

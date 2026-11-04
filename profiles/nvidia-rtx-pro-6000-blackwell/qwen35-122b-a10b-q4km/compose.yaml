@@ -1,0 +1,51 @@
+services:
+  inference:
+    image: ghcr.io/ggml-org/llama.cpp:dig-e8d36f4dc2a72a1d@sha256:e8d36f4dc2a72a1df323748f6219c9dd11f662f7cb3b06a6b2916c9bf3866d89
+    command:
+      - -m
+      - /models/model/Q4_K_M/Qwen3.5-122B-A10B-Q4_K_M-00001-of-00003.gguf
+      - --host
+      - 0.0.0.0
+      - --port
+      - '8080'
+      - -ngl
+      - '999'
+      - --flash-attn
+      - 'on'
+      - --no-mmap
+      - -c
+      - '65536'
+      - --cache-type-k
+      - q8_0
+      - --cache-type-v
+      - q8_0
+      - -b
+      - '4096'
+      - -ub
+      - '4096'
+      - --jinja
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '4'
+          memory: 16G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

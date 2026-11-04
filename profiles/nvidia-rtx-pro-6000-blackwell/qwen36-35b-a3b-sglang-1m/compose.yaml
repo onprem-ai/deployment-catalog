@@ -1,0 +1,56 @@
+services:
+  inference:
+    image: onpremai/sglang-blackwell:v0.5.17@sha256:ec5a08568603fb5cdb08cd52ceea205890f5fd44f525f674677077a2c7346810
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        python3 -m sglang.launch_server \
+          --model-path /models/model \
+          --served-model-name qwen36-35b-a3b \
+          --host 0.0.0.0 --port 8080 \
+          --enable-metrics \
+          --trust-remote-code \
+          --mem-fraction-static 0.45 \
+          --context-length 1048576 --max-running-requests 4 \
+          --quantization compressed-tensors \
+          --kv-cache-dtype fp8_e5m2 \
+          --json-model-override-args '{"rope_scaling":{"type":"yarn","factor":4.0,"original_max_position_embeddings":262144}}' \
+          --mamba-scheduler-strategy extra_buffer \
+          --page-size 64 \
+          --speculative-algorithm EAGLE \
+          --speculative-num-steps 3 \
+          --speculative-eagle-topk 1 \
+          --speculative-num-draft-tokens 4 \
+          --reasoning-parser qwen3 \
+          --tool-call-parser qwen3_coder \
+          --chat-template /models/model/chat_template.jinja
+
+    environment:
+      SGLANG_ALLOW_OVERWRITE_LONGER_CONTEXT_LEN: "1"
+      SGLANG_ENABLE_SPEC_V2: "1"
+      SGLANG_MAMBA_SSM_DTYPE: "bfloat16"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '2'
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '8'
+          memory: 16G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

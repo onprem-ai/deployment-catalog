@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: Publisher-maintained Z-Image-Turbo contract
+  version: '1'
+  description: Bounded compatibility description of this proxy entry's endpoint, maintained by the profile
+    publisher and generated from the entry's request example.
+paths:
+  /v1/images/generations:
+    post:
+      summary: Text-to-image generation (OpenAI-compatible /v1/images/generations)

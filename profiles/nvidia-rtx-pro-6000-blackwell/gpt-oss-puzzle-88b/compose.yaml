@@ -1,0 +1,55 @@
+services:
+  inference:
+    image: vllm/vllm-openai:v0.17.1@sha256:0dc46f74eb0e630675d83101dc66c6441c4475cceedcf9235ee42b87c3affd23
+    # Prefix caching stated, not left to the engine default: a repeated system prompt or
+    # conversation is not prefilled again. On for this model on every vLLM version;
+    # stated so a newer engine cannot change it unseen.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        set -e
+        echo "Installing vLLM PR #38135 and flashinfer..."
+        apt-get update && apt-get install -y git
+        VLLM_USE_PRECOMPILED=1 pip install --no-build-isolation 'git+https://github.com/vllm-project/vllm.git@refs/pull/38135/head'
+        pip install flashinfer-cubin==0.6.6 flashinfer-jit-cache==0.6.6 --extra-index-url https://flashinfer.ai/whl/cu$$(echo $$CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+        echo "Starting vLLM server..."
+        export PYTORCH_ALLOC_CONF=expandable_segments:True
+        vllm serve /models/model \
+          --served-model-name gpt-oss-puzzle-88b \
+          --host 0.0.0.0 --port 8080 \
+          --enable-prefix-caching \
+          --trust-remote-code \
+          --chat-template /models/model/chat_template.jinja \
+          --stream-interval 20 \
+          --gpu-memory-utilization 0.59 \
+          --max-num-seqs 128 \
+          --max-cudagraph-capture-size 8 \
+          --max-model-len 131072 --max-num-batched-tokens 8192 --kv-cache-dtype fp8
+
+    environment:
+      PYTORCH_ALLOC_CONF: "expandable_segments:True"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 4G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '4'
+          memory: 8G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

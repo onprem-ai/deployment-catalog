@@ -1,0 +1,80 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Qwen3.6 35B-A3B
+  subtitle: vLLM
+  logo: qwen.svg
+  short_description: >-
+    Alibaba's multimodal VLM (Qwen3.6) with NVFP4 quantization by RedHatAI. 35B total params with 3B
+    activated (MoE). Hybrid DeltaNet+Attention architecture with vision encoder. Strong agentic
+    coding performance.
+  maturity: deprecated
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 45097156608
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: qwen36-35b-a3b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2026-04-17'
+  parameter_count: 35000000000
+  active_parameter_count: 3000000000
+  weights_disk_size_bytes: 25769803776
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/Qwen/Qwen3.6-35B-A3B/raw/995ad96eacd98c81ed38be0c5b274b04031597b0/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  mixture_of_experts: true
+  format: safetensors
+  quantization: nvfp4-pack-quantized
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 262144
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: RedHatAI--Qwen3.6-35B-A3B-NVFP4--model
+      files:
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - model.safetensors
+      - model.safetensors.index.json
+      - model_mtp.safetensors
+      - model_visual.safetensors
+      - processor_config.json
+      - tokenizer.json
+      - tokenizer_config.json

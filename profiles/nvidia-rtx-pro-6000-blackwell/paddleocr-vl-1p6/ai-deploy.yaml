@@ -1,0 +1,82 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: PaddleOCR-VL 1.6
+  short_description: >-
+    Baidu's three-stage VLM document-parsing pipeline with a private recognition sidecar on one GPU.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    # 14 GiB: the vlm sidecar's vLLM takes 0.09 of the GPU (8.6 GiB), and the pipeline
+    # container's layout models hold about 5.2 GiB more, measured; the pipeline sets no
+    # GPU memory limit of its own, so the deploy page warns about it.
+    memory_bytes_per_device: 15032385536
+  cpu:
+    architecture: amd64
+
+runtime:
+  engine: paddleocr
+  compose: compose.yaml
+
+api:
+  routing_model_id: paddleocr-vl-1.6
+  passthrough:
+  - path_prefix: /{routing_model_id}
+    container: pipeline
+    port: 8080
+    openapi: api/paddleocr-layout-parsing.yaml
+    endpoints:
+    - POST /layout-parsing
+    smoke_test:
+      request:
+        headers:
+          Content-Type: application/json
+        body:
+          file: iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==
+          fileType: 1
+      expect:
+        status: 200
+
+model:
+  creator: Baidu
+  homepage: https://github.com/PaddlePaddle/PaddleOCR
+  released_at: '2026-08-15'
+  parameter_count: 900000000
+  architecture: ocr-pipeline
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/PaddlePaddle/PaddleOCR-VL-1.6/resolve/c5630abae1d940eafe0697512a0325494b02ab42/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: none
+  capabilities:
+    input:
+    - image
+    output:
+    - text
+    max_context_length: 16384
+  weights:
+    main:
+      provider: onprem-ai
+      repository: PaddlePaddle--PaddleOCR-VL-1.6--model
+      files:
+      - added_tokens.json
+      - chat_template.jinja
+      - config.json
+      - configuration_paddleocr_vl.py
+      - generation_config.json
+      - image_processing_paddleocr_vl.py
+      - model.safetensors
+      - modeling_paddleocr_vl.py
+      - preprocessor_config.json
+      - processing_paddleocr_vl.py
+      - processor_config.json
+      - special_tokens_map.json
+      - tokenizer.json
+      - tokenizer.model
+      - tokenizer_config.json

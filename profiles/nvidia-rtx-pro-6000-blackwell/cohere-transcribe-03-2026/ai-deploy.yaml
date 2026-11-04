@@ -1,0 +1,81 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Cohere Transcribe
+  logo: cohere.svg
+  short_description: >-
+    Cohere's 2B-param Conformer-based ASR model. #1 on HF Open ASR Leaderboard (5.42% avg WER).
+    Supports 14 languages. Dedicated speech-to-text architecture -- not an LLM with audio bolted on.
+    524x real-time speed. API: POST /v1/audio/transcriptions with audio file upload.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 7516192768
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: cohere-transcribe
+  passthrough:
+  - path_prefix: /{routing_model_id}
+    container: inference
+    port: 8080
+    openapi: api/v1-audio-transcriptions.yaml
+    endpoints:
+    - POST /v1/audio/transcriptions
+    smoke_test:
+      request:
+        multipart:
+        - name: file
+          file: smoke-test/hello.wav
+          content_type: audio/wav
+        - name: language
+          value: en
+      expect:
+        status: 200
+
+model:
+  released_at: '2026-03-26'
+  parameter_count: 2000000000
+  weights_disk_size_bytes: 4294967296
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: float32
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+  weights:
+    main:
+      provider: onprem-ai
+      repository: CohereLabs--cohere-transcribe-03-2026--model
+      files:
+      - config.json
+      - configuration_cohere_asr.py
+      - generation_config.json
+      - model.safetensors
+      - modeling_cohere_asr.py
+      - preprocessor_config.json
+      - processing_cohere_asr.py
+      - processor_config.json
+      - special_tokens_map.json
+      - tokenization_cohere_asr.py
+      - tokenizer.json
+      - tokenizer.model
+      - tokenizer_config.json

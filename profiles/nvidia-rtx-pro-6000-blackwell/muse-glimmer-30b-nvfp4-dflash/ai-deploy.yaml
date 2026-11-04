@@ -1,0 +1,88 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Muse Glimmer 30B
+  subtitle: DFlash
+  logo: meta.svg
+  short_description: >-
+    Text-only deployment of Meta's dense agentic model using the SGLang-verified mixed NVFP4/MXFP8
+    target weights and the official DFlash assistant on SGLang.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 80530636800
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: sglang
+  compose: compose.yaml
+
+api:
+  routing_model_id: muse-glimmer-30b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  creator: Meta Superintelligence Labs
+  homepage: https://developer.meta.com/ai/models/muse-glimmer/
+  released_at: '2026-08-10'
+  parameter_count: 30000000000
+  architecture: dense
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/RadixArk/Muse-Glimmer-NVFP4/resolve/1416629950afdfb276618fd4810103681dd10f4a/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: nvfp4-mxfp8
+  speculative_decoding: dflash
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 131072
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: RadixArk--Muse-Glimmer-NVFP4--model
+      files:
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - hf_quant_config.json
+      - model-00001-of-00005.safetensors
+      - model-00002-of-00005.safetensors
+      - model-00003-of-00005.safetensors
+      - model-00004-of-00005.safetensors
+      - model-00005-of-00005.safetensors
+      - model.safetensors.index.json
+      - processor_config.json
+      - tokenizer.json
+      - tokenizer_config.json
+    draft:
+      provider: onprem-ai
+      repository: meta-models--Muse-Glimmer-30B-assistant--model
+      files:
+      - config.json
+      - model.safetensors

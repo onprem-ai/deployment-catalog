@@ -1,0 +1,14 @@
+openapi: 3.1.0
+info:
+  title: Publisher-maintained Anthropic Messages compatibility contract
+  version: "2023-06-01"
+  description: >-
+    Bounded compatibility description maintained by the profile publisher.
+    Anthropic does not publish this file and has not endorsed it.
+paths:
+  /v1/messages:
+    post:
+      summary: Create a message
+      responses:
+        "200":
+          description: A successful message response

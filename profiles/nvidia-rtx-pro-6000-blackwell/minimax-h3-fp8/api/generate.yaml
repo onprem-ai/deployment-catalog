@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: Publisher-maintained MiniMax H3 contract
+  version: '1'
+  description: Bounded compatibility description of this proxy entry's endpoint, maintained by the profile
+    publisher and generated from the entry's request example.
+paths:
+  /generate:
+    post:
+      summary: Text-to-video+audio generation (MP4 response)

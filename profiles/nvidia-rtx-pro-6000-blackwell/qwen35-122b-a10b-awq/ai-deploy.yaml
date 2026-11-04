@@ -1,0 +1,104 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Qwen3.5 122B-A10B
+  subtitle: AWQ
+  logo: qwen.svg
+  short_description: >-
+    Alibaba's hybrid architecture model with AWQ 4-bit quantization. 122B total params with ~10B
+    activated (MoE). Uses vLLM nightly for inference. Thinking mode with <think> blocks.
+  maturity: unsupported
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 103079215104
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: qwen35-122b-a10b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2026-02-25'
+  weights_disk_size_bytes: 82678120448
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/QuantTrio/Qwen3.5-122B-A10B-AWQ/raw/af62f78061dacbebd03825ceae7d675609e66320/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  mixture_of_experts: true
+  format: safetensors
+  quantization: awq
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 262144
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: QuantTrio--Qwen3.5-122B-A10B-AWQ--model
+      files:
+      - LICENSE
+      - config.json
+      - configuration.json
+      - generation_config.json
+      - model-00001-of-00028.safetensors
+      - model-00002-of-00028.safetensors
+      - model-00003-of-00028.safetensors
+      - model-00004-of-00028.safetensors
+      - model-00005-of-00028.safetensors
+      - model-00006-of-00028.safetensors
+      - model-00007-of-00028.safetensors
+      - model-00008-of-00028.safetensors
+      - model-00009-of-00028.safetensors
+      - model-00010-of-00028.safetensors
+      - model-00011-of-00028.safetensors
+      - model-00012-of-00028.safetensors
+      - model-00013-of-00028.safetensors
+      - model-00014-of-00028.safetensors
+      - model-00015-of-00028.safetensors
+      - model-00016-of-00028.safetensors
+      - model-00017-of-00028.safetensors
+      - model-00018-of-00028.safetensors
+      - model-00019-of-00028.safetensors
+      - model-00020-of-00028.safetensors
+      - model-00021-of-00028.safetensors
+      - model-00022-of-00028.safetensors
+      - model-00023-of-00028.safetensors
+      - model-00024-of-00028.safetensors
+      - model-00025-of-00028.safetensors
+      - model-00026-of-00028.safetensors
+      - model-00027-of-00028.safetensors
+      - model-00028-of-00028.safetensors
+      - model.safetensors.index.json
+      - preprocessor_config.json
+      - tokenizer.json
+      - tokenizer_config.json
+      - video_preprocessor_config.json
+      - vocab.json

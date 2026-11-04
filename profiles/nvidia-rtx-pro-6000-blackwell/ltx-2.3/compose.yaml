@@ -1,0 +1,33 @@
+services:
+  inference:
+    image: onpremai/ltx-2.3-server:latest
+    command:
+    environment:
+      MODEL_DIR: "/models"
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+      USE_FP8: "true"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8000/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '4'
+          memory: 16G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '8'
+          memory: 32G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

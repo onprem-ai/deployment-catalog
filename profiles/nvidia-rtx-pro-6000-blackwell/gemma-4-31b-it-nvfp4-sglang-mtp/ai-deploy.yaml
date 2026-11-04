@@ -1,0 +1,90 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Gemma 4 31B IT
+  subtitle: SGLang · MTP · vision
+  logo: google.svg
+  short_description: >-
+    Google's Gemma 4 31B Dense with NVIDIA FP4 quantization on SGLang. NEXTN multi-token prediction
+    via official assistant drafter model. Unlike the vLLM MTP entry, SGLang supports MTP + vision
+    together -- no --language-model-only restriction.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 84825604096
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: sglang
+  compose: compose.yaml
+
+api:
+  routing_model_id: gemma-4-31b-it
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2026-04-22'
+  parameter_count: 31000000000
+  weights_disk_size_bytes: 34359738368
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://ai.google.dev/gemma/apache_2.md.txt
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: nvfp4
+  speculative_decoding: mtp
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 262144
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: nvidia--Gemma-4-31B-IT-NVFP4--model
+      files:
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - hf_quant_config.json
+      - model-00001-of-00004.safetensors
+      - model-00002-of-00004.safetensors
+      - model-00003-of-00004.safetensors
+      - model-00004-of-00004.safetensors
+      - model.safetensors.index.json
+      - processor_config.json
+      - tokenizer.json
+      - tokenizer_config.json
+    draft:
+      provider: onprem-ai
+      repository: google--gemma-4-31B-it-assistant--model
+      files:
+      - config.json
+      - generation_config.json
+      - model.safetensors
+      - tokenizer.json
+      - tokenizer_config.json

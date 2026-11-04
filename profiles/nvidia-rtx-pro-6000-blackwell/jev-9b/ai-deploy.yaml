@@ -1,0 +1,106 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: JEV 9B
+  subtitle: BF16 · System 1 decisions
+  short_description: >-
+    AutoTrust's open student of TypeSafe Jev 1.13 on an unmodified Qwen3.5-9B. One vLLM engine
+    serves calibrated typed decisions (yes/no, choice over 2-16 options, 0-5 score) through the
+    jev-9b-decision LoRA module, and ordinary text generation with reasoning and tool use through
+    the base model. Text input only.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 32212254720
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: jev-9b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - POST /v1/completions
+    # Typed decisions, the OpenAI Decisions API: answered inside the engine's server by
+    # the profile's container-files/decisions_middleware.py (see compose.yaml).
+    - POST /v1/decisions
+    - GET /v1/models
+    # The model thinks by default, and a short token cap ends inside its reasoning;
+    # thinking off and room for a few words make the check see a real answer.
+    smoke_test:
+      request:
+        headers: {}
+        body:
+          messages:
+          - role: user
+            content: say hello in one word
+          max_tokens: 16
+          temperature: 0
+          stream: false
+          chat_template_kwargs:
+            enable_thinking: false
+      expect:
+        status: 200
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  creator: AutoTrust AI
+  homepage: https://huggingface.co/autotrust
+  released_at: '2026-09-23'
+  parameter_count: 8953803264
+  architecture: dense-hybrid
+  weights_disk_size_bytes: 18104344656
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: bf16
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 32768
+    reasoning: true
+    tool_use: true
+    decisions: true
+  weights:
+    main:
+      provider: huggingface
+      repository: autotrust/JEV-9B
+      revision: d7bf1c0051f78e3a7bd5bbb90add79bfd769079b
+      files:
+      - model-00001-of-00005.safetensors
+      - model-00002-of-00005.safetensors
+      - model-00003-of-00005.safetensors
+      - model-00004-of-00005.safetensors
+      - model-00005-of-00005.safetensors
+      - model.safetensors.index.json
+      - config.json
+      - tokenizer.json
+      - tokenizer_config.json
+      - chat_template.jinja
+      - calibration.json
+      - adapter_vllm/adapter_config.json
+      - adapter_vllm/adapter_model.safetensors
+      - adapter_vllm/decision_head.json

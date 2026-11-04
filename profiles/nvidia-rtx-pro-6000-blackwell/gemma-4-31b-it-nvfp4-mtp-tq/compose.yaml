@@ -1,0 +1,64 @@
+services:
+  inference:
+    image: onpremai/sglang-blackwell:gemma4-mtp-turboquant-swa
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        # SGLang's _is_already_quantized() validates the drafter path as
+        # an HF repo ID, which rejects absolute paths like /drafter.
+        # Workaround: populate the HF cache structure so SGLang resolves
+        # the HF model name to the local mount.
+        export HF_HUB_CACHE=/tmp/hf_cache
+        mkdir -p /tmp/hf_cache/models--google--gemma-4-31B-it-assistant/snapshots/local \
+                 /tmp/hf_cache/models--google--gemma-4-31B-it-assistant/refs
+        for f in /drafter/*; do ln -sf "$$f" /tmp/hf_cache/models--google--gemma-4-31B-it-assistant/snapshots/local/; done
+        echo "local" > /tmp/hf_cache/models--google--gemma-4-31B-it-assistant/refs/main
+
+        python3 -m sglang.launch_server \
+          --model-path /models/model \
+          --served-model-name gemma-4-31b-it \
+          --host 0.0.0.0 --port 8080 \
+          --enable-metrics \
+          --trust-remote-code \
+          --mem-fraction-static 0.62 \
+          --context-length 131072 --kv-cache-dtype turboquant_4bit_uniform \
+          --quantization modelopt_fp4 \
+          --speculative-algorithm FROZEN_KV_MTP \
+          --speculative-draft-model-path google/gemma-4-31B-it-assistant \
+          --speculative-num-steps 5 \
+          --speculative-eagle-topk 1 \
+          --speculative-num-draft-tokens 6 \
+          --speculative-draft-model-quantization unquant \
+          --reasoning-parser gemma4 \
+          --tool-call-parser gemma4 \
+          --chat-template /models/model/chat_template.jinja
+
+    volumes:
+      - model:/models/model:ro
+      - draft:/models/draft:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '2'
+          memory: 12G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '8'
+          memory: 16G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
+  draft:
+    x-ai-deploy:
+      weights: draft

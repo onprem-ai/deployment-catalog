@@ -1,0 +1,48 @@
+services:
+  inference:
+    image: onpremai/glm-5-2:placeholder-tag@sha256:0000000000000000000000000000000000000000000000000000000000000000
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        # PLACEHOLDER -- replace with actual launch command.
+        # SGLang example (DSA sparse attention backend, TP=4):
+        #   python3 -m sglang.launch_server \
+        #     --model-path /models/model \
+        #     --served-model-name glm-5-2 \
+        #     --host 0.0.0.0 --port 8080 \
+        #     --trust-remote-code \
+        #     --attention-backend dsa \
+        #     --dsa-topk-backend sgl-kernel \
+        #     --reasoning-parser glm45 \
+        #     --tool-call-parser glm47 \
+        #     --enable-auto-tool-choice \
+        #     --tp 4 \
+        #     --max-total-tokens 32768
+        echo "NOT IMPLEMENTED -- placeholder config"
+        exit 1
+
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 4
+              capabilities: [gpu]
+        limits:
+          cpus: '4'
+          memory: 32G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

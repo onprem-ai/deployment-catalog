@@ -1,0 +1,66 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Qwen3.5 122B-A10B
+  subtitle: Q4_K_M
+  logo: qwen.svg
+  short_description: >-
+    Alibaba's hybrid architecture model with Q4_K_M quantization. 122B total params with ~10B
+    activated (MoE). Combines Gated DeltaNet with sparse MoE for efficient inference. Thinking mode
+    with <think> blocks. GGUF format for llama.cpp on NVIDIA Blackwell.
+  maturity: unsupported
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 103079215104
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: llama.cpp
+  compose: compose.yaml
+
+api:
+  routing_model_id: qwen35-122b-a10b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2026-02-25'
+  weights_disk_size_bytes: 75161927680
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/Qwen/Qwen3.5-122B-A10B/raw/dc4d348443bc740c68e2d77492492c11606384d5/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  mixture_of_experts: true
+  format: gguf
+  quantization: gguf-q4_k_m
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 262144
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: unsloth--Qwen3.5-122B-A10B-GGUF--Qwen3.5-122B-A10B-Q4_K_M

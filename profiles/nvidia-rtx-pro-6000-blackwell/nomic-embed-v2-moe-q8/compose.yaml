@@ -1,0 +1,43 @@
+services:
+  inference:
+    image: onpremai/llama-cpp-blackwell:latest@sha256:69143b44cc2235a34821fb9a38b6a1ff070a29819f44b9ad909a0f7e44567fc7
+    command:
+      - llama-server
+      - -m
+      - /models/model/nomic-embed-text-v2-moe.Q8_0.gguf
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - -ngl
+      - "999"
+      - --flash-attn
+      - "on"
+      - -c
+      - "512"
+      - --embedding
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 2G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '2'
+          memory: 4G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

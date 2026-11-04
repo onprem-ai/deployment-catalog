@@ -1,0 +1,70 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Gemma 4 26B-A4B IT
+  subtitle: 1M context · TurboQuant KV cache
+  logo: google.svg
+  short_description: >-
+    Google's Gemma 4 26B-A4B with 1M token context window. Uses TurboQuant KV cache compression
+    (turbo3 = 3-bit) to fit 1M tokens on a single RTX PRO 6000. MXFP4 weights leverage native
+    Blackwell FP4 tensor cores.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 78383153152
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: llama.cpp
+  compose: compose.yaml
+
+api:
+  routing_model_id: gemma-4-26b-a4b-it
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2026-04-22'
+  parameter_count: 26000000000
+  active_parameter_count: 3800000000
+  weights_disk_size_bytes: 18253611008
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://ai.google.dev/gemma/apache_2.md.txt
+    file: licenses/source-0-LICENSE.txt
+  mixture_of_experts: true
+  format: gguf
+  quantization: gguf-mxfp4_moe
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 1048576
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: unsloth--gemma-4-26B-A4B-it-GGUF--gemma-4-26B-A4B-it-MXFP4_MOE
+      files:
+      - gemma-4-26B-A4B-it-MXFP4_MOE.gguf

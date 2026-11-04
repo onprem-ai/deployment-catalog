@@ -1,0 +1,46 @@
+services:
+  inference:
+    image: nvcr.io/nvidia/vllm:26.02-py3@sha256:1bec659df62970ce856523b67868ab9f92cf947946ee5e89cc6a9cabe9d783da
+    # Prefix caching stated, not left to the engine default: a repeated system prompt or
+    # conversation is not prefilled again. On for this model on every vLLM version;
+    # stated so a newer engine cannot change it unseen.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        python3 -m vllm.entrypoints.openai.api_server \
+          --model /models/model \
+          --served-model-name gpt-oss-120b \
+          --host 0.0.0.0 --port 8080 \
+          --enable-prefix-caching \
+          --gpu-memory-utilization 0.96 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 4096 \
+          --max-model-len 131072 \
+          --enable-auto-tool-choice \
+          --tool-call-parser openai
+
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 4G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: '4'
+          memory: 8G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

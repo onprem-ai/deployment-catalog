@@ -1,0 +1,68 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+
+display:
+  name: Chandra OCR 2
+  logo: datalab-chandra.svg
+  short_description: >-
+    Datalab's SOTA document OCR model (5.3B, Qwen 3.5 VL). Converts documents to Markdown/HTML/JSON
+    with layout preservation. Supports 90+ languages, handwriting, tables, math, charts. olmOCR
+    benchmark: 85.9%.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 16106127360
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+
+api:
+  routing_model_id: chandra-ocr-2
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+
+model:
+  released_at: '2026-03-18'
+  parameter_count: 5300000000
+  weights_disk_size_bytes: 11811160064
+  license:
+    expression: LicenseRef-OpenRAIL-M-Modified
+    name: OpenRAIL-M Modified License
+    url: https://huggingface.co/datalab-to/chandra-ocr-2/resolve/af93b47dba1b47b6640c86ccf487ed2260ab9a09/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: bfloat16
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 262144
+  weights:
+    main:
+      provider: onprem-ai
+      repository: datalab-to--chandra-ocr-2--model
+      files:
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - model.safetensors
+      - preprocessor_config.json
+      - processor_config.json
+      - tokenizer.json
+      - tokenizer_config.json
+      - video_preprocessor_config.json

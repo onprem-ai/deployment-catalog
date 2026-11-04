@@ -1,0 +1,66 @@
+services:
+  inference:
+    image: lmsysorg/sglang:qwen38flashnext@sha256:12d3392bdc8be8d35e9a95f191df6aef99c5114bdbefd41bfdc7e760e6d25ec1
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        set -euo pipefail
+
+        # The day-0 image incorrectly excludes SM120 from its working
+        # TRT-LLM QSA decode path. Fail loudly if upstream source differs.
+        python3 -c 'from pathlib import Path; path = Path("/sgl-workspace/sglang/python/sglang/srt/layers/attention/qwen_sparse_attn_backend.py"); source = path.read_text(encoding="utf-8"); old_import = "from sglang.srt.utils import is_sm100_supported"; new_import = "from sglang.srt.utils import is_sm100_supported, is_sm120_supported"; old_guard = "if not is_sm100_supported():"; new_guard = "if not (is_sm100_supported() or is_sm120_supported()):"; assert source.count(old_import) == 1, "unexpected QSA import count"; assert source.count(old_guard) == 1, "unexpected QSA guard count"; path.write_text(source.replace(old_import, new_import).replace(old_guard, new_guard), encoding="utf-8")'
+
+        # SGLang auto-enables PLE host offload for this checkpoint, so
+        # explicitly disable it to keep the complete table on the GPUs.
+        python3 -m sglang.launch_server \
+          --model-path /models/model \
+          --served-model-name qwen3.8-flash-next \
+          --host 0.0.0.0 --port 8080 \
+          --enable-metrics \
+          --tp 2 \
+          --mem-fraction-static 0.92 \
+          --context-length 262144 --max-total-tokens 262144 --max-running-requests 32 \
+          --quantization modelopt_fp4 \
+          --fp4-gemm-backend flashinfer_cutlass \
+          --page-size 64 \
+          --chunked-prefill-size 4096 \
+          --no-ple-offload-embedding \
+          --linear-attn-prefill-backend triton \
+          --linear-attn-decode-backend flashinfer \
+          --mamba-ssm-dtype bfloat16 \
+          --mamba-radix-cache-strategy extra_buffer \
+          --mamba-track-interval 64 \
+          --max-mamba-cache-size 192 \
+          --cuda-graph-max-bs-decode 32 \
+          --speculative-algorithm NEXTN \
+          --speculative-num-steps 3 \
+          --speculative-eagle-topk 1 \
+          --speculative-num-draft-tokens 4 \
+          --reasoning-parser auto \
+          --tool-call-parser auto
+
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '2'
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 2
+              capabilities: [gpu]
+        limits:
+          cpus: '8'
+          memory: 16G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
