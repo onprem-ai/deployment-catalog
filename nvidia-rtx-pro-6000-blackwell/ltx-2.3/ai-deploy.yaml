@@ -2,6 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: LTX-2.3 (22B)
+  logo: assets/logo.svg
   short_description: >-
     Lightricks' 22B DiT audio-video generation model. Generates synchronized video and audio from
     text prompts. Served via ltx-pipelines DistilledPipeline with FP8 quantization.

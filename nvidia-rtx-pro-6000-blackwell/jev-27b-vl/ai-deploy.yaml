@@ -2,6 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: JEV 27B VL
+  logo: assets/logo.svg
   subtitle: BF16 · System 1 decisions · vision
   short_description: >-
     AutoTrust's open decision model on the multimodal Qwen3.8-27B. One vLLM engine serves calibrated

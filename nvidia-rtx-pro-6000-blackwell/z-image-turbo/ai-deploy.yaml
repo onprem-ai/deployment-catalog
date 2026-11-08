@@ -2,6 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: Z-Image-Turbo
+  logo: assets/logo.svg
   short_description: >-
     Alibaba's 6B Single-Stream DiT for text-to-image generation. CFG-free turbo model -- 8 sampling
     steps for fast inference. #1 open-source on Artificial Analysis leaderboard (Dec 2025). Apache
