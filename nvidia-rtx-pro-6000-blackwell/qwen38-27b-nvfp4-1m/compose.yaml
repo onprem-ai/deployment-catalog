@@ -1,47 +1,33 @@
 services:
   inference:
     image: vllm/vllm-openai:v0.27.1@sha256:0a51ea5b4ae2dc5d81890e5173f54203d2a3ae0cfffe51b8fd2afd4391bfd967
-    # That image's ENTRYPOINT is `vllm serve`, so the command is serve's own
-    # arguments: the model tag positional, then the flags as list items. A
-    # `bash -c` script here would become arguments to `vllm serve` itself --
-    # the module invocation belongs to the older vLLM images without an
-    # entrypoint.
+    # The image's ENTRYPOINT is `vllm serve`; the entrypoint below replaces it with
+    # bash, so the script calls `vllm serve` itself.
+    #
+    # vLLM leaves prefix caching off by default for hybrid models (this one mixes
+    # linear attention with full attention) while the feature matures, so it is
+    # switched on here. vLLM caches a hybrid model's prompts in whole aligned blocks,
+    # so shorter shared prefixes do not hit.
+    entrypoint: [bash, -c]
     command:
-      - /models/model
-      - --served-model-name
-      - qwen3.8-27b
-      - --host
-      - 0.0.0.0
-      - --port
-      - "8080"
-      - --trust-remote-code
-      - --gpu-memory-utilization
-      - "0.88"
-      - --max-num-seqs
-      - "128"
-      - --max-num-batched-tokens
-      - "4096"
-      - --max-model-len
-      - "1010000"
-      - --hf-overrides
-      - '{"text_config": {"max_position_embeddings": 1010000}}'
-      - --kv-cache-dtype
-      - fp8
-      - --speculative-config
-      - '{"method": "mtp", "num_speculative_tokens": 2}'
-      - --reasoning-parser
-      - qwen3
-      - --enable-auto-tool-choice
-      - --tool-call-parser
-      - qwen3_coder
-      - --chat-template
-      - /models/model/chat_template.jinja
-      # vLLM leaves prefix caching off by default for hybrid models (this one mixes
-      # linear attention with full attention) while the feature matures, so it is
-      # switched on here. vLLM caches a hybrid model's prompts in whole aligned blocks,
-      # so shorter shared prefixes do not hit.
-      - --enable-prefix-caching
-
+      - |-
+        set -euo pipefail
+        exec vllm serve /models/model \
+          --served-model-name qwen3.8-27b \
+          --host 0.0.0.0 --port 8080 \
+          --trust-remote-code \
+          --gpu-memory-utilization 0.88 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 4096 \
+          --max-model-len 1010000 \
+          --hf-overrides '{"text_config": {"max_position_embeddings": 1010000}}' \
+          --kv-cache-dtype fp8 \
+          --speculative-config '{"method": "mtp", "num_speculative_tokens": 2}' \
+          --reasoning-parser qwen3 \
+          --enable-auto-tool-choice \
+          --tool-call-parser qwen3_coder \
+          --chat-template /models/model/chat_template.jinja \
+          --enable-prefix-caching
     volumes:
       - model:/models/model:ro
     expose:

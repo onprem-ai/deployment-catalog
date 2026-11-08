@@ -1,30 +1,22 @@
 services:
   inference:
     image: onpremai/llama-cpp-turboquant:latest@sha256:ecc8ac1f847c00fca2f77213c1d8ad5f03194e98070d89fc1af1f03f46aaca3c
+    entrypoint: [bash, -c]
     command:
-      - -m
-      - /models/model/gemma-4-26B-A4B-it-MXFP4_MOE.gguf
-      - --host
-      - 0.0.0.0
-      - --port
-      - '8080'
-      - -ngl
-      - '99'
-      - -fa
-      - 'on'
-      - -ctk
-      - turbo3
-      - -ctv
-      - turbo3
-      - -c
-      - '1048576'
-      - -ub
-      - '8192'
-      - -b
-      - '8192'
-      - --parallel
-      - '1'
-      - --jinja
+      - |-
+        set -euo pipefail
+        exec /app/llama-server \
+          -m /models/model/gemma-4-26B-A4B-it-MXFP4_MOE.gguf \
+          --host 0.0.0.0 --port 8080 \
+          -ngl 99 \
+          -fa on \
+          -ctk turbo3 \
+          -ctv turbo3 \
+          -c 1048576 \
+          -ub 8192 \
+          -b 8192 \
+          --parallel 1 \
+          --jinja
     volumes:
       - model:/models/model:ro
     expose:
