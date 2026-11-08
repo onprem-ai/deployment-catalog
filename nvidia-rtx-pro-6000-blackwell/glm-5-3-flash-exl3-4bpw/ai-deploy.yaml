@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: GLM 5.3 Flash
   subtitle: EXL3 4bpw · MTP
-  logo: zhipu.svg
+  logo: assets/logo.svg
   short_description: >-
     GLM-5.3-Flash 321B/18B-active language model on two RTX PRO 6000 Blackwell GPUs. Uniform-K4
     EXL3/TR3 routed experts with TP2, EP2, DCP2, calibrated NVFP4 MLA KV cache, and built-in MTP3

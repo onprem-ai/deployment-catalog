@@ -2,7 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: PP-OCRv6 Medium
-  logo: paddre-ocr.svg
+  logo: assets/logo.svg
   short_description: >-
     Baidu's 34.5M-parameter traditional OCR pipeline for fast text detection and recognition. One
     recognition model supports 50 languages and is optimized for general and industrial text,

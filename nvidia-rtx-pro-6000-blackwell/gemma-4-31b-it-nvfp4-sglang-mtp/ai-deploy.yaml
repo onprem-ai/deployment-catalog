@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Gemma 4 31B IT
   subtitle: SGLang · MTP · vision
-  logo: google.svg
+  logo: assets/logo.svg
   short_description: >-
     Google's Gemma 4 31B Dense with NVIDIA FP4 quantization on SGLang. NEXTN multi-token prediction
     via official assistant drafter model. Unlike the vLLM MTP entry, SGLang supports MTP + vision

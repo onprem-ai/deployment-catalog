@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Gemma 4 31B IT Turbo
   subtitle: N-gram speculative decoding
-  logo: google.svg
+  logo: assets/logo.svg
   short_description: >-
     LilaRest's optimized text-only Gemma 4 31B NVFP4 with n-gram speculative decoding. Uses prompt
     patterns to predict tokens - best for structured output (JSON, code, lists). No separate draft

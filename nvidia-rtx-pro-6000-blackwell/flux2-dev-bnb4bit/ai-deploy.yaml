@@ -2,7 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: FLUX.2-dev
-  logo: black-forest-labs-logo.svg
+  logo: assets/logo.svg
   short_description: >-
     Black Forest Labs' 32B rectified flow transformer for text-to-image generation. NF4-quantized
     transformer and Mistral3 text encoder via bitsandbytes. Generates photorealistic images from

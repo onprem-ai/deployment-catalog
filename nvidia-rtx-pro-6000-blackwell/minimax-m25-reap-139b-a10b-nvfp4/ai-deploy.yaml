@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: MiniMax M2.5 REAP 139B
   subtitle: NVFP4
-  logo: moonshot.svg
+  logo: assets/logo.svg
   short_description: >-
     MiniMax's efficient MoE model with NVFP4 quantization. 139B total params with 10B activated.
     REAP variant optimized for reasoning. Optimized for NVIDIA Blackwell GPUs.

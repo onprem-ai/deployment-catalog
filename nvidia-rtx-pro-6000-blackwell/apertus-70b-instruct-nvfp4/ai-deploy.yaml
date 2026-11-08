@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Apertus 70B Instruct
   subtitle: NVFP4
-  logo: swiss-ai.svg
+  logo: assets/logo.svg
   short_description: >-
     Swiss AI's multilingual 70B dense transformer (1,811 languages) with NVFP4 W4A4 quantization. EU
     AI Act compliant, fully open training data and weights.

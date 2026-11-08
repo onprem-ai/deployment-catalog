@@ -2,7 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: Hunyuan OCR
-  logo: hunyuan-color.svg
+  logo: assets/logo.svg
   short_description: >-
     Tencent's lightweight end-to-end OCR model (1B). Text spotting with coordinates, document
     parsing (LaTeX/HTML/Mermaid), information extraction (JSON). 100+ languages, video subtitle

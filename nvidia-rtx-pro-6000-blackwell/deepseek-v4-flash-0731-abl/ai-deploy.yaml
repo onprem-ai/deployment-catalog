@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: DeepSeek V4 Flash 0731 Abliterated
   subtitle: DSpark
-  logo: deepseek.svg
+  logo: assets/logo.svg
   short_description: >-
     Abliterated (decensored) rebuild of DeepSeek V4 Flash 0731 with DSpark speculative decoding.
     284B total / 13B active params, native FP4 experts + FP8 block elsewhere, reasoning and tool

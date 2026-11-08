@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Apertus v1.5 8B
   subtitle: NVFP4
-  logo: swiss-ai.svg
+  logo: assets/logo.svg
   short_description: >-
     Mixed NVFP4, FP8, and BF16 quantization of Apertus v1.5 8B for multimodal chat on one RTX PRO
     6000 Blackwell GPU.

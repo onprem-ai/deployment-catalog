@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Apertus v1.5 70B
   subtitle: FP8
-  logo: swiss-ai.svg
+  logo: assets/logo.svg
   short_description: >-
     FP8_DYNAMIC quantization of the official Apertus v1.5 70B on all linear projections. 71 GiB
     (1.9x compression, no measurable MMLU loss). Baseline: onprem-ai/Apertus-v1.5-70B-FP8 release

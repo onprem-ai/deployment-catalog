@@ -2,7 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: Chandra OCR 2
-  logo: datalab-chandra.svg
+  logo: assets/logo.svg
   short_description: >-
     Datalab's SOTA document OCR model (5.3B, Qwen 3.5 VL). Converts documents to Markdown/HTML/JSON
     with layout preservation. Supports 90+ languages, handwriting, tables, math, charts. olmOCR

@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Qwen3.6 35B-A3B
   subtitle: 1M context · MTP
-  logo: qwen.svg
+  logo: assets/logo.svg
   short_description: >-
     Same Qwen3.6 35B-A3B NVFP4 weights as the 262k entry, extended to 1M tokens via FP8 KV cache
     compression (2x) and YaRN rope scaling (factor 4.0). EAGLE MTP speculative decoding enabled (300

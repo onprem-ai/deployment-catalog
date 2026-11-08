@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Qwen3.8 27B
   subtitle: 1M context · MTP
-  logo: qwen.svg
+  logo: assets/logo.svg
   short_description: >-
     The same Unsloth Dynamic V3.0 NVFP4 checkpoint as the 262K card, extended to 1,010,000 tokens
     with vLLM's documented nested text_config position override. Dense multimodal hybrid model with

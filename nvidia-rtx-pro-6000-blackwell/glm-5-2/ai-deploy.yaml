@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: GLM 5.2
   subtitle: NVFP4 · SGLang
-  logo: zhipu.svg
+  logo: assets/logo.svg
   short_description: >-
     Zhipu AI's flagship MoE model with IndexShare sparse attention and solid 1M-token context. 256
     experts (8 active), reasoning, tool calling, and MTP speculative decoding. NVFP4 quantized by

@@ -2,7 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: GPT OSS 120B
-  logo: openai.svg
+  logo: assets/logo.svg
   short_description: >-
     OpenAI's open-source 120B parameter model. Excellent reasoning and coding capabilities with
     GPT-4 class performance. Full precision for NVIDIA GPUs with vLLM.

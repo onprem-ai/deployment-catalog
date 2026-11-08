@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Gemma 4 31B IT
   subtitle: NVFP4 · vision
-  logo: google.svg
+  logo: assets/logo.svg
   short_description: >-
     Google DeepMind's frontier multimodal model with NVIDIA FP4 quantization. 31B parameters, 256K
     context. Handles text, image, and video inputs. Runs on single RTX 6000 Blackwell (96GB).

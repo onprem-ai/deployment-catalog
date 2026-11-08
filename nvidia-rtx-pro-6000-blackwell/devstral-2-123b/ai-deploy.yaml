@@ -2,7 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: Devstral 2 123B
-  logo: mistral.svg
+  logo: assets/logo.svg
   short_description: >-
     Mistral's Devstral-2 123B parameter model for coding and development tasks. Q4_K_M quantization
     with llama.cpp CUDA backend on NVIDIA Blackwell.

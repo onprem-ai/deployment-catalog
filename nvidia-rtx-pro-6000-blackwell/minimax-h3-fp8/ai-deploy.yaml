@@ -2,7 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: MiniMax H3
-  logo: minimax-color.svg
+  logo: assets/logo.svg
   short_description: >-
     MiniMax's 33B omni-modal model generating synchronized video + native stereo audio in one pass.
     Initial server API supports text-to-video; first/last-frame inputs are deferred. Official

@@ -2,7 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: Jina Embeddings v4
-  logo: jina-color.svg
+  logo: assets/logo.svg
   short_description: >-
     Jina AI's 3.8B multimodal embedding model -- text, images, and PDFs in a unified vector space.
     Built on Qwen2.5-VL-3B. Dense (2048-dim, Matryoshka 128–2048) and ColBERT-style multi-vector

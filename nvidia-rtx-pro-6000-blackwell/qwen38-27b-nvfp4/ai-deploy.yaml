@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Qwen3.8 27B
   subtitle: NVFP4 · MTP
-  logo: qwen.svg
+  logo: assets/logo.svg
   short_description: >-
     Unsloth Dynamic V3.0 NVFP4 quantization of Qwen3.8-27B with native multimodal input, reasoning,
     tool use, and MTP speculative decoding.

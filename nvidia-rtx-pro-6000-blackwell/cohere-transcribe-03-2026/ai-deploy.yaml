@@ -2,7 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: Cohere Transcribe
-  logo: cohere.svg
+  logo: assets/logo.svg
   short_description: >-
     Cohere's 2B-param Conformer-based ASR model. #1 on HF Open ASR Leaderboard (5.42% avg WER).
     Supports 14 languages. Dedicated speech-to-text architecture -- not an LLM with audio bolted on.

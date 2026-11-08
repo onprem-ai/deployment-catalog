@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Gemma 4 26B-A4B IT
   subtitle: FP8 · MTP
-  logo: google.svg
+  logo: assets/logo.svg
   short_description: >-
     DEPRECATED: MTP is 50% slower than baseline on Blackwell (102 vs 207 tok/s). Use
     gemma-4-26b-a4b-it instead. Google's Gemma 4 26B MoE with Multi-Token Prediction speculative

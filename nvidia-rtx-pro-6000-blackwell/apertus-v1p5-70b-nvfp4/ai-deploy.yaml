@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Apertus v1.5 70B
   subtitle: NVFP4
-  logo: swiss-ai.svg
+  logo: assets/logo.svg
   short_description: >-
     Mixed NVFP4, FP8, and BF16 quantization of Apertus v1.5 70B with a 229,376-token qualified
     primary configuration.

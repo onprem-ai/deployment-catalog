@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Qwen3.6 35B-A3B
   subtitle: vLLM
-  logo: qwen.svg
+  logo: assets/logo.svg
   short_description: >-
     Alibaba's multimodal VLM (Qwen3.6) with NVFP4 quantization by RedHatAI. 35B total params with 3B
     activated (MoE). Hybrid DeltaNet+Attention architecture with vision encoder. Strong agentic

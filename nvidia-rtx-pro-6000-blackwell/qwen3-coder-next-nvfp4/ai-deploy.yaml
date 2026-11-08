@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Qwen3 Coder Next
   subtitle: NVFP4 by GadflyII
-  logo: qwen.svg
+  logo: assets/logo.svg
   short_description: >-
     Alibaba's specialized coding agent model with NVFP4 quantization. 80B total params with 3B
     activated (MoE). Hybrid DeltaNet+Attention architecture. Optimized for NVIDIA Blackwell GPUs.

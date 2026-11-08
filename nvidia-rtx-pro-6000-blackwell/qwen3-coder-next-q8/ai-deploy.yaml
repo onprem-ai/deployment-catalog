@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Qwen3 Coder Next
   subtitle: Q8_0
-  logo: qwen.svg
+  logo: assets/logo.svg
   short_description: >-
     Alibaba's specialized coding agent model. 80B total params with 3B activated (MoE). Excellent
     for long-horizon reasoning, tool usage, and IDE integration. Q8_0 quantization for maximum

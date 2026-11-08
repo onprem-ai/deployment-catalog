@@ -2,7 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: GPT OSS Puzzle 88B
-  logo: nvidia.svg
+  logo: assets/logo.svg
   short_description: >-
     NVIDIA's 88B parameter model optimized for reasoning and puzzle-solving tasks. Built on the
     GPT-OSS architecture with enhanced logical reasoning capabilities. Requires custom vLLM build.

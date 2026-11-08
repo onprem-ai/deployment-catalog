@@ -2,7 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: Qwen3 Embedding 8B
-  logo: qwen.svg
+  logo: assets/logo.svg
   short_description: >-
     #1 on Multilingual MTEB (70.58). Alibaba's 8B instruction-aware embedding model based on
     Qwen3-8B-Base. 4096-dim embeddings, Matryoshka (32–4096), last-token pooling, 100+ languages.

@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Gemma 4 26B-A4B IT
   subtitle: BF16 · vision
-  logo: google.svg
+  logo: assets/logo.svg
   short_description: >-
     Google's original Gemma 4 26B MoE (3.8B active) in full BF16 precision. No quantization loss --
     higher benchmark scores than FP8 variant. Supports multimodal image input.

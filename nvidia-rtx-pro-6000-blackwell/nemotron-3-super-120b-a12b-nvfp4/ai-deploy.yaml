@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Nemotron-3 Super 120B
   subtitle: NVFP4
-  logo: nvidia.svg
+  logo: assets/logo.svg
   short_description: >-
     NVIDIA's flagship MoE model with NVFP4 quantization. 120B total params with 12B activated (MTP
     architecture). Thinking mode with <think> blocks. Optimized for NVIDIA Blackwell GPUs.

@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 display:
   name: Gemma 4 26B-A4B IT
   subtitle: NVFP4
-  logo: google.svg
+  logo: assets/logo.svg
   short_description: >-
     Google's Gemma 4 26B MoE (3.8B active) with NVFP4 quantization from RedHatAI
     (compressed-tensors). ~40% smaller than FP8 Dynamic. Text-only, 262K context.

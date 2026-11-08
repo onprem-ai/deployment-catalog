@@ -2,7 +2,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
 
 display:
   name: Jina v5 Text Small
-  logo: jina-color.svg
+  logo: assets/logo.svg
   short_description: >-
     Jina AI's 677M embedding model distilled from Qwen3-Embedding-4B. MTEB v2 71.7 -- best
     quality-to-size ratio under 1B params. 32K context, Matryoshka dims (32–1024), 119+ languages.
