@@ -9,6 +9,9 @@ services:
     # top_k 64) and stop tokens; the model must not stop on <|eom|>.
     # DFlash with 7 draft tokens favours a single user's speed over the highest
     # throughput at 128 concurrent requests (journal, 2026-11-10).
+    # FP8 KV cache (journal, 2026-11-11): neither Meta nor vLLM's recipe recommends a
+    # 16-bit KV cache; the answers checked the same, and it doubles the KV cache. The
+    # drafter stays BF16: FP8 for it and the KV cache together made one user 5% slower.
     entrypoint: [bash, -c]
     command:
       - |-
@@ -20,6 +23,7 @@ services:
           --max-model-len 131072 \
           --max-num-seqs 128 \
           --max-num-batched-tokens 8192 \
+          --kv-cache-dtype fp8 \
           --enable-prefix-caching \
           --limit-mm-per-prompt '{"image":4}' \
           --chat-template /models/reference/chat_template.jinja \
