@@ -1,0 +1,101 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Muse Glimmer 30B
+  subtitle: FP8 · vision · DFlash
+  logo: assets/logo.svg
+  short_description: >-
+    Meta's dense agentic model with FP8 block-quantized weights on vLLM and Meta's DFlash drafter
+    for fast single-user answers. Image input, reasoning and tool calls, 128K context. Runs on a
+    single H200 (141 GB).
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 128849018880
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 34359738368
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 120259084288
+  measured_gpu_memory_bytes_per_device:
+    model_weights: 34917118591
+    drafters: 5111976608
+    cuda_graphs: 1739461755
+    runtime_overhead: 7351692165
+    kv_cache: 73787538145
+  measured_kv_cache_tokens_per_replica: 3071550
+
+api:
+  routing_model_id: muse-glimmer-30b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  creator: Meta Superintelligence Labs
+  homepage: https://developer.meta.com/ai/models/muse-glimmer/
+  released_at: '2026-08-10'
+  parameter_count: 29600000000
+  architecture: dense
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/RedHatAI/Muse-Glimmer-30B-FP8-block/resolve/ada816a1a324aa9dfd6cb18b7fcb05106a1101a9/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: fp8
+  speculative_decoding: dflash
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 131072
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: huggingface
+      repository: RedHatAI/Muse-Glimmer-30B-FP8-block
+      revision: ada816a1a324aa9dfd6cb18b7fcb05106a1101a9
+      files:
+      - config.json
+      - model-00001-of-00002.safetensors
+      - model-00002-of-00002.safetensors
+      - model.safetensors.index.json
+      - processor_config.json
+      - tokenizer.json
+      - tokenizer_config.json
+    reference:
+      provider: huggingface
+      repository: meta-models/Muse-Glimmer-30B
+      revision: cec94fcfd6512f2cfe708138c32533b346ea4f69
+      files:
+      - chat_template.jinja
+      - generation_config.json
+    draft:
+      provider: huggingface
+      repository: meta-models/Muse-Glimmer-30B-assistant
+      revision: c676cce91658f9568aaf264a416211e2782735b7
+      files:
+      - config.json
+      - model.safetensors

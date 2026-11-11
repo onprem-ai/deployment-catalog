@@ -1,0 +1,115 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Kolibri 1
+  subtitle: FP8 · 1M context
+  logo: assets/logo.svg
+  short_description: >-
+    Aleph Alpha's German-English mixture-of-experts reasoning model (78B, 3.5B active) in its
+    official FP8 weights on vLLM, with tool calls, four reasoning efforts and 1M context.
+    Runs on a single H200 (141 GB).
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 141733920768
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 34359738368
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 128849018880
+  measured_gpu_memory_bytes_per_device:
+    model_weights: 78866336973
+    cuda_graphs: 923417969
+    runtime_overhead: 8498414878
+    kv_cache: 46342697124
+  measured_kv_cache_tokens_per_replica: 4015963
+
+api:
+  routing_model_id: kolibri-1
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  creator: Aleph Alpha
+  homepage: https://aleph-alpha.com/en/blog/kolibri-has-landed-a-sovereign-open-weight-model/
+  released_at: '2026-10-03'
+  parameter_count: 78103074560
+  active_parameter_count: 3457573120
+  architecture: moe
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/Aleph-Alpha/Kolibri-1/resolve/abfe85f673fd79a3e1cdb98289e7a1c635345ee1/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: fp8
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 1048576
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: huggingface
+      repository: Aleph-Alpha/Kolibri-1
+      revision: abfe85f673fd79a3e1cdb98289e7a1c635345ee1
+      files:
+      - config.json
+      - generation_config.json
+      - model-00001-of-00032.safetensors
+      - model-00002-of-00032.safetensors
+      - model-00003-of-00032.safetensors
+      - model-00004-of-00032.safetensors
+      - model-00005-of-00032.safetensors
+      - model-00006-of-00032.safetensors
+      - model-00007-of-00032.safetensors
+      - model-00008-of-00032.safetensors
+      - model-00009-of-00032.safetensors
+      - model-00010-of-00032.safetensors
+      - model-00011-of-00032.safetensors
+      - model-00012-of-00032.safetensors
+      - model-00013-of-00032.safetensors
+      - model-00014-of-00032.safetensors
+      - model-00015-of-00032.safetensors
+      - model-00016-of-00032.safetensors
+      - model-00017-of-00032.safetensors
+      - model-00018-of-00032.safetensors
+      - model-00019-of-00032.safetensors
+      - model-00020-of-00032.safetensors
+      - model-00021-of-00032.safetensors
+      - model-00022-of-00032.safetensors
+      - model-00023-of-00032.safetensors
+      - model-00024-of-00032.safetensors
+      - model-00025-of-00032.safetensors
+      - model-00026-of-00032.safetensors
+      - model-00027-of-00032.safetensors
+      - model-00028-of-00032.safetensors
+      - model-00029-of-00032.safetensors
+      - model-00030-of-00032.safetensors
+      - model-00031-of-00032.safetensors
+      - model-00032-of-00032.safetensors
+      - model.safetensors.index.json
+      - tokenizer_config.json
+      - tokenizer.json

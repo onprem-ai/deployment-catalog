@@ -1,0 +1,55 @@
+services:
+  inference:
+    image: vllm/vllm-openai:v0.33.0@sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e
+    # vLLM serves Kolibri through its Transformers modeling backend (transformers 5.20.2 in
+    # this image has kolibri1). The `hf` parsers read the checkpoint's response_template.
+    # 1M context: positions are encoded only in the sliding-window layers, so the context
+    # extends without scaling; the override raises the 262,144 the config states.
+    # --generation-config auto takes the checkpoint's sampling (temperature 1.0, top_p 0.97,
+    # top_k 128) and stop tokens.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        exec vllm serve /models/model \
+          --served-model-name kolibri-1 \
+          --host 0.0.0.0 --port 8080 \
+          --tensor-parallel-size 1 \
+          --gpu-memory-utilization 0.8584 \
+          --max-model-len 1048576 \
+          --hf-overrides '{"max_position_embeddings": 1048576}' \
+          --kv-cache-dtype fp8 \
+          --max-num-seqs 256 \
+          --max-num-batched-tokens 16384 \
+          --enable-prefix-caching \
+          --generation-config auto \
+          --enable-auto-tool-choice \
+          --tool-call-parser hf \
+          --reasoning-parser hf
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 120
+      start_period: 120s
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 16G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "12"
+          memory: 32G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
