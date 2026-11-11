@@ -1,0 +1,55 @@
+services:
+  inference:
+    image: vllm/vllm-openai:v0.33.0@sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e
+    # Settings from the H200 tuning in the operator's gist (LightOnOCR-2-1B H200 benchmark):
+    # 192 sequences, 98,304 batched tokens, 6,144 tokens per request (one page image at
+    # 1,540 px plus up to 3,100 output tokens), one image per prompt, no multimodal processor
+    # cache and no prefix caching (every page is new), as LightOn's model card serves it.
+    # The gist ran vLLM 0.28.0 with the packed Pixtral attention of vllm-project/vllm#52185
+    # patched in; v0.33.0 holds that change, so no patch is needed.
+    # --generation-config auto takes LightOn's sampling: temperature 0.2, top_p 0.9.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        exec vllm serve /models/model \
+          --served-model-name lightonocr-2-1b \
+          --host 0.0.0.0 --port 8080 \
+          --dtype bfloat16 \
+          --gpu-memory-utilization 0.9013 \
+          --max-model-len 6144 \
+          --max-num-seqs 192 \
+          --max-num-batched-tokens 98304 \
+          --limit-mm-per-prompt '{"image":1}' \
+          --mm-processor-cache-gb 0 \
+          --no-enable-prefix-caching \
+          --generation-config auto
+    environment:
+      PYTORCH_ALLOC_CONF: expandable_segments:True
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 90
+      start_period: 60s
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 16G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "14"
+          memory: 32G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
