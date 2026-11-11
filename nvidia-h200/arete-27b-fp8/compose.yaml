@@ -1,0 +1,59 @@
+services:
+  inference:
+    image: vllm/vllm-openai:v0.33.0@sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e
+    # Arete ships only BF16 weights and no MTP head (Nous switched it off in training), so
+    # vLLM quantizes the linear layers to FP8 at load and the DFlash2 drafter of the base
+    # model drafts the tokens. Tuned on one H200 (journal 2026-11-11, tuning): 4 draft tokens
+    # and a 128 GiB engine booking let about 100 requests run at once; this hybrid model's
+    # linear-attention state fills the KV cache before compute is the limit.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        exec vllm serve /models/model \
+          --served-model-name arete-27b \
+          --host 0.0.0.0 --port 8080 \
+          --tensor-parallel-size 1 \
+          --quantization fp8_per_block \
+          --gpu-memory-utilization 0.9156 \
+          --max-model-len 262144 \
+          --kv-cache-dtype fp8 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 16384 \
+          --enable-prefix-caching \
+          --generation-config auto \
+          --reasoning-parser qwen3 \
+          --enable-auto-tool-choice \
+          --tool-call-parser qwen3_coder \
+          --speculative-config '{"method":"dflash","model":"/models/draft","num_speculative_tokens":4}'
+    volumes:
+      - model:/models/model:ro
+      - draft:/models/draft:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 120
+      start_period: 120s
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 16G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "14"
+          memory: 64G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
+  draft:
+    x-ai-deploy:
+      weights: draft
