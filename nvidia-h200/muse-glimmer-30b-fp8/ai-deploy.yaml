@@ -28,10 +28,10 @@ runtime:
   measured_gpu_memory_bytes_per_device:
     model_weights: 34917118591
     drafters: 5111976608
-    cuda_graphs: 1739461755
-    runtime_overhead: 7351692165
-    kv_cache: 73787538145
-  measured_kv_cache_tokens_per_replica: 3071550
+    cuda_graphs: 1760936591
+    runtime_overhead: 5649056399
+    kv_cache: 73755325891
+  measured_kv_cache_tokens_per_replica: 6140837
 
 api:
   routing_model_id: muse-glimmer-30b
