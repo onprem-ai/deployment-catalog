@@ -1,0 +1,89 @@
+services:
+  inference:
+    # The model card names vLLM v0.32.0 for every vLLM recipe of this model. The
+    # multi-arch manifest is pinned so the packaged image cannot change upstream.
+    image: vllm/vllm-openai:v0.32.0@sha256:befccf0e7e4089aa23926bb6f887a85c0d46c2a99e6de5c5ffdf5cb7957c5b34
+    # That image's ENTRYPOINT is `vllm serve`, so the command is serve's own
+    # arguments: the model positional, then the flags as list items.
+    #
+    # NVIDIA's published recipe for one H200 (the 2x H100 command with tensor
+    # parallelism 1), unchanged except the path, name, port and prefix caching. The
+    # H200 is Hopper (SM 9.0) and has no FP4 tensor cores: vLLM keeps the NVFP4
+    # weights in memory and runs them as W4A16, so the profile gets the memory saving
+    # but not Blackwell's FP4 compute. No --max-model-len: the engine takes the
+    # model's native 1M tokens. MTP drafts 3 tokens, as the recipe sets for Hopper.
+    command:
+      - /models/model
+      - --served-model-name
+      - nemotron-3.5-super-vl
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --trust-remote-code
+      - --gpu-memory-utilization
+      - "0.84"
+      - --max-num-seqs
+      - "128"
+      - --max-num-batched-tokens
+      - "16384"
+      - --block-size
+      - "64"
+      - --prefix-match-unit
+      - "64"
+      - --compilation_config.max_cudagraph_capture_size
+      - "512"
+      - --mamba-backend
+      - flashinfer
+      - --mamba-ssm-cache-dtype
+      - float16
+      - --enable-mamba-cache-stochastic-rounding
+      - --mamba-cache-philox-rounds
+      - "5"
+      - --enable-mamba-shared-prefix-checkpoint
+      - --mamba-cache-mode
+      - align
+      # NVIDIA's GB200 recipe for the same model switches prefix caching on, and the
+      # Mamba prefix checkpoint above exists for it; stated here so the default of the
+      # vLLM version does not decide.
+      - --enable-prefix-caching
+      - --speculative-config
+      - '{"method":"mtp","num_speculative_tokens":2}'
+      - --video-pruning-rate
+      - "0.5"
+      - --media-io-kwargs
+      - '{"video": {"fps": 2, "num_frames": 256}}'
+      - --enable-auto-tool-choice
+      - --tool-call-parser
+      - qwen3_coder
+      - --reasoning-parser
+      - nemotron_v3
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    # 70 GiB of weights to load and CUDA graphs to capture before the server answers.
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 90
+      start_period: 600s
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 16G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "16"
+          memory: 32G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

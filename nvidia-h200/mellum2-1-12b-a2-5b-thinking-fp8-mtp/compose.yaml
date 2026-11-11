@@ -1,0 +1,77 @@
+services:
+  inference:
+    # vLLM v0.33.0: JetBrains' MTP repository needs vLLM 0.33 or newer to load the MTP head.
+    # The multi-arch manifest is pinned so the packaged image cannot change upstream.
+    image: vllm/vllm-openai:v0.33.0@sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e
+    # That image's ENTRYPOINT is `vllm serve`, so the command is serve's own arguments:
+    # the model positional, then the flags as list items.
+    #
+    # JetBrains' vLLM command with tool calling: 131,072-token context, the qwen3
+    # reasoning parser and the hermes tool parser. The checkpoint's generation config
+    # sets no sampling, so the model card's recommended sampling for thinking
+    # (temperature 0.6, top_p 0.95, top_k 20) is the default; a request may override it.
+    # The engine gets 56 GiB, of which the FP8 weights and the MTP head take about 12 GiB:
+    # the rest is KV cache, and the GPU keeps room for other models.
+    command:
+      - /models/model
+      - --served-model-name
+      - mellum2.1-thinking
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --gpu-memory-utilization
+      - "0.39"
+      - --max-model-len
+      - "131072"
+      - --max-num-seqs
+      - "128"
+      - --max-num-batched-tokens
+      - "8192"
+      # Prefix caching stated, not left to the engine default: a repeated system prompt or
+      # conversation is not prefilled again.
+      - --enable-prefix-caching
+      # FP8 weights and activations, quantized from the BF16 checkpoint at load time in
+      # 128x128 blocks: Hopper runs FP8 natively, and no trusted FP8 checkpoint exists.
+      # Same answers as BF16 (journal 2026-11-11).
+      - --quantization
+      - fp8_per_block
+      # JetBrains' MTP head with one draft token, as its model card recommends: the first
+      # drafted token is accepted 90% of the time, a second one only 38%.
+      - --speculative-config
+      - '{"method":"mtp","num_speculative_tokens":1}'
+      - --override-generation-config
+      - '{"temperature": 0.6, "top_p": 0.95, "top_k": 20}'
+      - --reasoning-parser
+      - qwen3
+      - --enable-auto-tool-choice
+      - --tool-call-parser
+      - hermes
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 90
+      start_period: 120s
+    shm_size: 8gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "8"
+          memory: 24G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

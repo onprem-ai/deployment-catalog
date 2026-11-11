@@ -1,0 +1,203 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Nemotron 3.5 Super VL 120B
+  subtitle: NVFP4 · MTP
+  logo: assets/logo.svg
+  short_description: >-
+    NVIDIA's vision-language Mamba-2/Transformer hybrid MoE, 120B total and 12B active parameters,
+    with NVFP4 weights. Text, image and video input, reasoning, tool use and native MTP speculative
+    decoding, up to 1M tokens of context on one H200. Hopper runs the FP4 weights as W4A16.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 140660178944
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 34359738368
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 126701535232
+  measured_gpu_memory_bytes_per_device:
+    model_weights: 76622216561
+    cuda_graphs: 1288490189
+    runtime_overhead: 14284205588
+    kv_cache: 40984725422
+  measured_kv_cache_tokens_per_replica: 8053536
+
+api:
+  routing_model_id: nemotron-3.5-super-vl
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+    # The model thinks by default, and a short token cap ends inside its reasoning;
+    # thinking off and room for a few words make the check see a real answer.
+    smoke_test:
+      request:
+        headers: {}
+        body:
+          messages:
+          - role: user
+            content: say hello in one word
+          max_tokens: 16
+          temperature: 0
+          stream: false
+          chat_template_kwargs:
+            enable_thinking: false
+      expect:
+        status: 200
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  creator: NVIDIA
+  homepage: https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4
+  released_at: '2026-10-15'
+  parameter_count: 120000000000
+  active_parameter_count: 12000000000
+  mixture_of_experts: true
+  weights_disk_size_bytes: 75061188509
+  license:
+    expression: LicenseRef-OpenMDW-1.1
+    name: OpenMDW License Agreement 1.1
+    url: https://openmdw.ai/license/1-1/
+    file: licenses/source-0-LICENSE.md
+  format: safetensors
+  quantization: nvfp4-modelopt
+  speculative_decoding: mtp
+  capabilities:
+    input:
+    - text
+    - image
+    - video
+    output:
+    - text
+    max_context_length: 1048576
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: huggingface
+      repository: nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4
+      revision: da5b2650a835292c678994a1fa3fb653250fb508
+      files:
+      - __init__.py
+      - chat_template.jinja
+      - config.json
+      - configuration_nemotron_h_omni.py
+      - configuration_radio.py
+      - generation_config.json
+      - hf_quant_config.json
+      - image_processing_nemotron_h_omni.py
+      - model-00001-of-00088.safetensors
+      - model-00002-of-00088.safetensors
+      - model-00003-of-00088.safetensors
+      - model-00004-of-00088.safetensors
+      - model-00005-of-00088.safetensors
+      - model-00006-of-00088.safetensors
+      - model-00007-of-00088.safetensors
+      - model-00008-of-00088.safetensors
+      - model-00009-of-00088.safetensors
+      - model-00010-of-00088.safetensors
+      - model-00011-of-00088.safetensors
+      - model-00012-of-00088.safetensors
+      - model-00013-of-00088.safetensors
+      - model-00014-of-00088.safetensors
+      - model-00015-of-00088.safetensors
+      - model-00016-of-00088.safetensors
+      - model-00017-of-00088.safetensors
+      - model-00018-of-00088.safetensors
+      - model-00019-of-00088.safetensors
+      - model-00020-of-00088.safetensors
+      - model-00021-of-00088.safetensors
+      - model-00022-of-00088.safetensors
+      - model-00023-of-00088.safetensors
+      - model-00024-of-00088.safetensors
+      - model-00025-of-00088.safetensors
+      - model-00026-of-00088.safetensors
+      - model-00027-of-00088.safetensors
+      - model-00028-of-00088.safetensors
+      - model-00029-of-00088.safetensors
+      - model-00030-of-00088.safetensors
+      - model-00031-of-00088.safetensors
+      - model-00032-of-00088.safetensors
+      - model-00033-of-00088.safetensors
+      - model-00034-of-00088.safetensors
+      - model-00035-of-00088.safetensors
+      - model-00036-of-00088.safetensors
+      - model-00037-of-00088.safetensors
+      - model-00038-of-00088.safetensors
+      - model-00039-of-00088.safetensors
+      - model-00040-of-00088.safetensors
+      - model-00041-of-00088.safetensors
+      - model-00042-of-00088.safetensors
+      - model-00043-of-00088.safetensors
+      - model-00044-of-00088.safetensors
+      - model-00045-of-00088.safetensors
+      - model-00046-of-00088.safetensors
+      - model-00047-of-00088.safetensors
+      - model-00048-of-00088.safetensors
+      - model-00049-of-00088.safetensors
+      - model-00050-of-00088.safetensors
+      - model-00051-of-00088.safetensors
+      - model-00052-of-00088.safetensors
+      - model-00053-of-00088.safetensors
+      - model-00054-of-00088.safetensors
+      - model-00055-of-00088.safetensors
+      - model-00056-of-00088.safetensors
+      - model-00057-of-00088.safetensors
+      - model-00058-of-00088.safetensors
+      - model-00059-of-00088.safetensors
+      - model-00060-of-00088.safetensors
+      - model-00061-of-00088.safetensors
+      - model-00062-of-00088.safetensors
+      - model-00063-of-00088.safetensors
+      - model-00064-of-00088.safetensors
+      - model-00065-of-00088.safetensors
+      - model-00066-of-00088.safetensors
+      - model-00067-of-00088.safetensors
+      - model-00068-of-00088.safetensors
+      - model-00069-of-00088.safetensors
+      - model-00070-of-00088.safetensors
+      - model-00071-of-00088.safetensors
+      - model-00072-of-00088.safetensors
+      - model-00073-of-00088.safetensors
+      - model-00074-of-00088.safetensors
+      - model-00075-of-00088.safetensors
+      - model-00076-of-00088.safetensors
+      - model-00077-of-00088.safetensors
+      - model-00078-of-00088.safetensors
+      - model-00079-of-00088.safetensors
+      - model-00080-of-00088.safetensors
+      - model-00081-of-00088.safetensors
+      - model-00082-of-00088.safetensors
+      - model-00083-of-00088.safetensors
+      - model-00084-of-00088.safetensors
+      - model-00085-of-00088.safetensors
+      - model-00086-of-00088.safetensors
+      - model-00087-of-00088.safetensors
+      - model-00088-of-00088.safetensors
+      - model.safetensors.index.json
+      - modeling_nemotron_h_omni.py
+      - modeling_radio.py
+      - preprocessor_config.json
+      - processing_nemotron_h_omni.py
+      - processor_config.json
+      - tokenizer.json
+      - tokenizer_config.json
+      - ultra_v3_reasoning_parser.py
