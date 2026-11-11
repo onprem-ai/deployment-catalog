@@ -1,0 +1,50 @@
+services:
+  inference:
+    image: vllm/vllm-openai:v0.33.0@sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e
+    # NVIDIA's `vllm serve` command from the model card (BF16, one image per prompt, remote
+    # code for the processor), with more sequences for batch work: the card's offline example
+    # uses 64. NVIDIA validated vLLM v0.20 to v0.26; v0.33.0 ties the output head to the
+    # decoder embeddings itself (nemotron_parse.py), which the card's vllm_tied_patch adds to
+    # older versions, so no patch is needed. Sampling from the checkpoint: greedy,
+    # repetition_penalty 1.1, up to 9,000 tokens.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        exec vllm serve /models/model \
+          --served-model-name nemotron-parse-2.0 \
+          --host 0.0.0.0 --port 8080 \
+          --dtype bfloat16 \
+          --trust-remote-code \
+          --gpu-memory-utilization 0.1717 \
+          --max-num-seqs 64 \
+          --limit-mm-per-prompt '{"image": 1}' \
+          --no-enable-prefix-caching \
+          --generation-config auto
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 90
+      start_period: 60s
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 16G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "8"
+          memory: 32G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

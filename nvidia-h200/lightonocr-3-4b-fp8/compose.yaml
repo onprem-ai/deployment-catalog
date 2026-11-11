@@ -1,0 +1,61 @@
+services:
+  inference:
+    # vLLM v0.33.0 serves the Qwen3.5 vision-language architecture LightOnOCR-3 uses. The
+    # multi-arch manifest is pinned so the packaged image cannot change upstream.
+    image: vllm/vllm-openai:v0.33.0@sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e
+    # LightOn's vLLM command (trust-remote-code, thinking off by default: the model is
+    # trained and evaluated without it), plus:
+    # - FP8 weights and activations made at load time in 128x128 blocks, and an FP8 KV
+    #   cache: Hopper runs FP8 natively, and LightOn publishes BF16 only, with no
+    #   recommendation against FP8. Its answers are checked at the first deployment.
+    # - LightOn's sampling (temperature 0.2, top_p 0.9) as the default.
+    # - One image per request: a request is one page, rendered at 400 DPI with a longest
+    #   edge of 2,048 px (LightOn's preprocessing), which fits in 32,768 tokens with the
+    #   answer.
+    # Prefix caching off on purpose: every request is a different page, so there is no
+    # prefix to reuse.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        exec vllm serve /models/model \
+          --served-model-name lightonocr-3-4b \
+          --host 0.0.0.0 --port 8080 \
+          --trust-remote-code \
+          --gpu-memory-utilization 0.14 \
+          --max-model-len 32768 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 16384 \
+          --quantization fp8_per_block \
+          --kv-cache-dtype fp8 \
+          --no-enable-prefix-caching \
+          --limit-mm-per-prompt '{"image":1,"video":0}' \
+          --default-chat-template-kwargs '{"enable_thinking": false}' \
+          --override-generation-config '{"temperature": 0.2, "top_p": 0.9}'
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 90
+      start_period: 120s
+    shm_size: 8gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "12"
+          memory: 16G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

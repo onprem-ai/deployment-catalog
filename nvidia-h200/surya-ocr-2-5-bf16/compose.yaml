@@ -1,0 +1,50 @@
+services:
+  inference:
+    image: vllm/vllm-openai:v0.33.0@sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e
+    # The server Datalab's surya-ocr client spawns (surya/inference/backends/vllm.py, release
+    # 0.23.0), with its H200 sizing: 32,768 batched tokens and 184 sequences (scaled from its
+    # 24 GB baseline of 8,192 and 32), a 24,576-token context (the largest page image plus
+    # 12,288 output tokens), BF16, and its image pixel range. Point the client at it with
+    # SURYA_INFERENCE_URL=<base URL>/v1. The checkpoint has no MTP head, so no speculative
+    # decoding. Datalab pins vLLM v0.25.1; this card uses the v0.33.0 image of the catalog.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        exec vllm serve /models/model \
+          --served-model-name surya-ocr-2.5 \
+          --host 0.0.0.0 --port 8080 \
+          --dtype bfloat16 \
+          --gpu-memory-utilization 0.2861 \
+          --max-model-len 24576 \
+          --max-num-seqs 184 \
+          --max-num-batched-tokens 32768 \
+          --enable-prefix-caching \
+          --mm-processor-kwargs '{"min_pixels": 3136, "max_pixels": 6291456}'
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 90
+      start_period: 60s
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 16G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "8"
+          memory: 32G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

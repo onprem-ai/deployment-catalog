@@ -1,0 +1,76 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: LightOnOCR-3 4B
+  subtitle: FP8 · OCR
+  logo: assets/logo.webp
+  short_description: >-
+    LightOn's largest and most accurate OCR model (4.5B, Qwen3.5 vision-language architecture): pages to Markdown, or with the `grounding` prompt every block with its label and bounding box, image descriptions and chart data as tables. olmOCR-Bench 86.3 (LightOn). FP8 at load time on one H200.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 25769803776
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 21474836480
+
+api:
+  routing_model_id: lightonocr-3-4b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+
+model:
+  creator: LightOn
+  homepage: https://huggingface.co/lightonai/LightOnOCR-3-4B
+  released_at: '2026-10-08'
+  parameter_count: 4539265536
+  architecture: dense-hybrid
+  mixture_of_experts: false
+  weights_disk_size_bytes: 9108699477
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: fp8-block
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 32768
+    reasoning: false
+    tool_use: false
+  weights:
+    main:
+      provider: huggingface
+      repository: lightonai/LightOnOCR-3-4B
+      revision: b71010f095dc3735de7ee6b9969bff8f8f50b39a
+      files:
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - merges.txt
+      - model.safetensors
+      - preprocessor_config.json
+      - processor_config.json
+      - tokenizer.json
+      - tokenizer_config.json
+      - vocab.json

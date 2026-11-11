@@ -1,0 +1,72 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Surya OCR 2.5
+  subtitle: 0.7B · BF16
+  logo: assets/logo.svg
+  short_description: >-
+    Datalab's 689M OCR model: layout, text in reading order, tables and math from a page image,
+    as HTML blocks. 83.7 on olmOCR-Bench. Free for research, personal use and companies under
+    5M USD revenue or funding; above that the weights need a paid license from Datalab.
+  maturity: stable
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 51539607552
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 34359738368
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 42949672960
+
+api:
+  routing_model_id: surya-ocr-2.5
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+
+model:
+  creator: Datalab
+  homepage: https://github.com/datalab-to/surya
+  released_at: '2026-10-29'
+  parameter_count: 689000000
+  architecture: dense
+  license:
+    expression: LicenseRef-OpenRAIL-M-Modified
+    name: AI Pubs Open RAIL-M License (Modified)
+    url: https://huggingface.co/datalab-to/surya-ocr-2.5/resolve/00c843e9cae45611dca0a6dc2c9bbbf2dadaaed3/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: none
+  capabilities:
+    input:
+    - image
+    output:
+    - text
+    max_context_length: 24576
+  weights:
+    main:
+      provider: huggingface
+      repository: datalab-to/surya-ocr-2.5
+      revision: 00c843e9cae45611dca0a6dc2c9bbbf2dadaaed3
+      files:
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - model.safetensors
+      - preprocessor_config.json
+      - processor_config.json
+      - tokenizer.json
+      - tokenizer_config.json
+      - video_preprocessor_config.json
