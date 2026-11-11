@@ -1,0 +1,110 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Mellum2.1 Thinking
+  subtitle: FP8 · MTP · thinking
+  logo: assets/logo.svg
+  short_description: >-
+    JetBrains' 12B mixture-of-experts model with 2.5B active parameters, trained with reinforcement
+    learning for agentic coding: exploring a repository, running commands, editing files and calling
+    tools. FP8 quantized at load time, JetBrains' MTP head for speculative decoding, thinking mode,
+    tool calls, 128K context. Takes part of one H200, so other models can share the GPU.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 68719476736
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 34359738368
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 60129542144
+  measured_gpu_memory_bytes_per_device:
+    model_weights: 13056700580
+    cuda_graphs: 987842478
+    runtime_overhead: 7225779159
+    kv_cache: 44248900567
+  measured_kv_cache_tokens_per_replica: 2015247
+
+api:
+  routing_model_id: mellum2.1-thinking
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+    # The model thinks by default, and a short token cap ends inside its reasoning;
+    # thinking off and room for a few words make the check see a real answer.
+    smoke_test:
+      request:
+        headers: {}
+        body:
+          messages:
+          - role: user
+            content: say hello in one word
+          max_tokens: 16
+          temperature: 0
+          stream: false
+          chat_template_kwargs:
+            enable_thinking: false
+      expect:
+        status: 200
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  creator: JetBrains
+  homepage: https://huggingface.co/JetBrains/Mellum2.1-12B-A2.5B-Thinking-MTP
+  released_at: '2026-09-20'
+  parameter_count: 12149923072
+  active_parameter_count: 2500000000
+  mixture_of_experts: true
+  weights_disk_size_bytes: 25164955859
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: fp8-block
+  speculative_decoding: mtp
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 131072
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: huggingface
+      repository: JetBrains/Mellum2.1-12B-A2.5B-Thinking-MTP
+      revision: d55846102dd1c047e95d4841070f88290227c3b7
+      files:
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - model-00001-of-00005.safetensors
+      - model-00002-of-00005.safetensors
+      - model-00003-of-00005.safetensors
+      - model-00004-of-00005.safetensors
+      - model-00005-of-00005.safetensors
+      - model-mtp.safetensors
+      - model.safetensors.index.json
+      - special_tokens_map.json
+      - tokenizer.json
+      - tokenizer_config.json
