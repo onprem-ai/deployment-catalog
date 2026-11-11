@@ -9,7 +9,7 @@ display:
     learning for agentic coding: exploring a repository, running commands, editing files and calling
     tools. FP8 quantized at load time, JetBrains' MTP head for speculative decoding, thinking mode,
     tool calls, 128K context. Takes part of one H200, so other models can share the GPU.
-  maturity: experimental
+  maturity: stable
   author: onprem-ai
 
 hardware:

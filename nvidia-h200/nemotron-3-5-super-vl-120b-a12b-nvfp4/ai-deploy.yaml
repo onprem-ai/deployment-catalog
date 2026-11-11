@@ -8,7 +8,7 @@ display:
     NVIDIA's vision-language Mamba-2/Transformer hybrid MoE, 120B total and 12B active parameters,
     with NVFP4 weights. Text, image and video input, reasoning, tool use and native MTP speculative
     decoding, up to 1M tokens of context on one H200. Hopper runs the FP4 weights as W4A16.
-  maturity: experimental
+  maturity: stable
   author: onprem-ai
 
 hardware:
