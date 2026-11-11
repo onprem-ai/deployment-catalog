@@ -1,0 +1,58 @@
+services:
+  inference:
+    image: vllm/vllm-openai:nightly-cf5cea2da37d3dfed27d2e0aa3041c3e553c2d57@sha256:390a656b54e12144ad15ff32244c6e848408b0ee94f2c4c5a84451e7430f1aa7
+    # Ripple support (vllm-project/vllm#65745) is newer than the v0.33.0 release; this
+    # nightly holds it. The official checkpoint is BF16 (120.7 GiB) and does not leave room
+    # for a KV cache on one H200: vLLM quantizes its linear layers to FP8 at load
+    # (--quantization fp8_per_block: 128x128 weight blocks, 1x128 dynamic activations).
+    # DFlash2 drafter from Ricursive, 7 draft tokens as in the vLLM recipe.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        exec vllm serve /models/model \
+          --served-model-name ripple-65b-preview \
+          --host 0.0.0.0 --port 8080 \
+          --tensor-parallel-size 1 \
+          --quantization fp8_per_block \
+          --gpu-memory-utilization 0.8584 \
+          --max-model-len 262144 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 8192 \
+          --enable-prefix-caching \
+          --generation-config auto \
+          --enable-auto-tool-choice \
+          --tool-call-parser ripple \
+          --reasoning-parser ripple \
+          --speculative-config '{"method":"dflash","model":"/models/draft","num_speculative_tokens":15,"num_speculative_tokens_per_batch_size":[[1,4,15],[5,32,7],[33,128,4]]}'
+    volumes:
+      - model:/models/model:ro
+      - draft:/models/draft:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 120
+      start_period: 120s
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 16G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "14"
+          memory: 64G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
+  draft:
+    x-ai-deploy:
+      weights: draft

@@ -1,0 +1,66 @@
+services:
+  inference:
+    image: vllm/vllm-openai:v0.33.0@sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e
+    # The FP8 repository's chat template and generation config are older than Meta's:
+    # its template misses the reasoning strength fix of 2026-08-11 and its generation
+    # config has no sampling. Both come from Meta's checkpoint at the pinned revision
+    # (the `reference` weights): --chat-template and --generation-config name them.
+    # --generation-config then takes Meta's sampling (temperature 1.0, top_p 0.95,
+    # top_k 64) and stop tokens; the model must not stop on <|eom|>.
+    # DFlash with 7 draft tokens favours a single user's speed over the highest
+    # throughput at 128 concurrent requests (journal, 2026-11-10).
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        exec vllm serve /models/model \
+          --served-model-name muse-glimmer-30b \
+          --host 0.0.0.0 --port 8080 \
+          --tensor-parallel-size 1 \
+          --gpu-memory-utilization 0.8011 \
+          --max-model-len 131072 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 8192 \
+          --enable-prefix-caching \
+          --limit-mm-per-prompt '{"image":4}' \
+          --chat-template /models/reference/chat_template.jinja \
+          --generation-config /models/reference \
+          --enable-auto-tool-choice \
+          --tool-call-parser muse_glimmer \
+          --reasoning-parser muse_glimmer \
+          --speculative-config '{"method":"dflash","model":"/models/draft","num_speculative_tokens":7}'
+    volumes:
+      - model:/models/model:ro
+      - reference:/models/reference:ro
+      - draft:/models/draft:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 90
+      start_period: 60s
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 16G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "12"
+          memory: 32G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
+  reference:
+    x-ai-deploy:
+      weights: reference
+  draft:
+    x-ai-deploy:
+      weights: draft

@@ -1,0 +1,108 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Ripple 65B Preview
+  subtitle: FP8 · DFlash2
+  logo: assets/logo.svg
+  short_description: >-
+    Ricursive's dense 65B reasoning and agentic-coding model, quantized to FP8 by vLLM at load
+    from the official BF16 weights, with Ricursive's DFlash2 drafter. Runs on a single H200
+    (141 GB).
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 141733920768
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 68719476736
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 128849018880
+  measured_gpu_memory_bytes_per_device:
+    model_weights: 66453881487
+    drafters: 8300024300
+    cuda_graphs: 4337916969
+    runtime_overhead: 1475388375
+    kv_cache: 50337016709
+  measured_kv_cache_tokens_per_replica: 453109
+
+api:
+  routing_model_id: ripple-65b-preview
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  creator: Ricursive Intelligence
+  homepage: https://www.ricursive.com/ripple
+  released_at: '2026-11-04'
+  parameter_count: 65000000000
+  architecture: dense
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/ricursiveAI/Ripple-65B-Preview/resolve/b172323ffd63e62de9ce1ba3830dfffe493c7671/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: fp8
+  speculative_decoding: dflash
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 262144
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: huggingface
+      repository: ricursiveAI/Ripple-65B-Preview
+      revision: b172323ffd63e62de9ce1ba3830dfffe493c7671
+      files:
+      - chat_template.jinja
+      - config.json
+      - model-00001-of-00016.safetensors
+      - model-00002-of-00016.safetensors
+      - model-00003-of-00016.safetensors
+      - model-00004-of-00016.safetensors
+      - model-00005-of-00016.safetensors
+      - model-00006-of-00016.safetensors
+      - model-00007-of-00016.safetensors
+      - model-00008-of-00016.safetensors
+      - model-00009-of-00016.safetensors
+      - model-00010-of-00016.safetensors
+      - model-00011-of-00016.safetensors
+      - model-00012-of-00016.safetensors
+      - model-00013-of-00016.safetensors
+      - model-00014-of-00016.safetensors
+      - model-00015-of-00016.safetensors
+      - model-00016-of-00016.safetensors
+      - model.safetensors.index.json
+      - special_tokens_map.json
+      - tokenizer.json
+      - tokenizer_config.json
+    draft:
+      provider: huggingface
+      repository: ricursiveAI/Ripple-65B-Preview-DFlash2
+      revision: 35609b3be3dd08a822b3ba1257c1ea5dd6f87632
+      files:
+      - config.json
+      - model.safetensors
