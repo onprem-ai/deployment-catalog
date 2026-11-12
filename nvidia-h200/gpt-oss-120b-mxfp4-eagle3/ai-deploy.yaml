@@ -1,0 +1,111 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: GPT OSS 120B
+  subtitle: MXFP4 · EAGLE3 · FP8 KV
+  logo: assets/logo.svg
+  short_description: >-
+    OpenAI's open-weight reasoning model (117B, 5.1B active) in its native MXFP4 weights on vLLM,
+    with NVIDIA's EAGLE3 drafter. Reasoning efforts, tool calls, 128K context on a single H200
+    (141 GB).
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 141733920768
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 34359738368
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 128849018880
+  measured_gpu_memory_bytes_per_device:
+    model_weights: 68316089428
+    drafters: 1573765896
+    cuda_graphs: 2050846884
+    runtime_overhead: 16452325212
+    kv_cache: 49295487140
+  measured_kv_cache_tokens_per_replica: 1687841
+
+api:
+  routing_model_id: gpt-oss-120b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  creator: OpenAI
+  homepage: https://openai.com/index/introducing-gpt-oss/
+  released_at: '2025-08-05'
+  parameter_count: 117000000000
+  active_parameter_count: 5100000000
+  architecture: moe
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/openai/gpt-oss-120b/resolve/b5c939de8f754692c1647ca79fbf85e8c1e70f8a/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: mxfp4
+  speculative_decoding: eagle3
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 131072
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: huggingface
+      repository: openai/gpt-oss-120b
+      revision: b5c939de8f754692c1647ca79fbf85e8c1e70f8a
+      files:
+      - LICENSE
+      - USAGE_POLICY
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - model-00000-of-00014.safetensors
+      - model-00001-of-00014.safetensors
+      - model-00002-of-00014.safetensors
+      - model-00003-of-00014.safetensors
+      - model-00004-of-00014.safetensors
+      - model-00005-of-00014.safetensors
+      - model-00006-of-00014.safetensors
+      - model-00007-of-00014.safetensors
+      - model-00008-of-00014.safetensors
+      - model-00009-of-00014.safetensors
+      - model-00010-of-00014.safetensors
+      - model-00011-of-00014.safetensors
+      - model-00012-of-00014.safetensors
+      - model-00013-of-00014.safetensors
+      - model-00014-of-00014.safetensors
+      - model.safetensors.index.json
+      - special_tokens_map.json
+      - tokenizer.json
+      - tokenizer_config.json
+    draft:
+      provider: huggingface
+      repository: nvidia/gpt-oss-120b-Eagle3-v3
+      revision: 975baaffe27cc031ba21ae370602735d8e3df052
+      files:
+      - config.json
+      - model.safetensors
