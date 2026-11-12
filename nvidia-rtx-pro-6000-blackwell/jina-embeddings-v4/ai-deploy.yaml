@@ -31,7 +31,7 @@ api:
     port: 8080
     openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
     endpoints:
-    - POST /v1/chat/completions
+    - POST /v1/embeddings
     - GET /v1/models
 
 model:
