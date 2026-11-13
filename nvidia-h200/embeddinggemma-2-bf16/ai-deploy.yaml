@@ -1,0 +1,78 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: EmbeddingGemma 2
+  subtitle: BF16 · 768d
+  logo: assets/logo.svg
+  short_description: >-
+    Google DeepMind's open embedding model (740M, 270M for text): text, code, images, audio and
+    video in one 768-dimensional space, 100+ languages, 8K context, Matryoshka truncation to 512,
+    256 or 128 dimensions. Takes a small part of one H200.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 5368709120
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 8589934592
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 4294967296
+
+api:
+  routing_model_id: embeddinggemma-2
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/embeddings
+    - GET /v1/models
+
+model:
+  creator: Google DeepMind
+  homepage: https://ai.google.dev/gemma/docs/embeddinggemma
+  released_at: '2026-10-06'
+  parameter_count: 740000000
+  architecture: dense
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://ai.google.dev/gemma/docs/gemma_4_license
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: bfloat16
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 8192
+    embedding: true
+  weights:
+    main:
+      provider: huggingface
+      repository: google/embeddinggemma-2
+      revision: f9972ac22e696a105c482202646979e33e4b5a1e
+      files:
+      - 1_Pooling/config.json
+      - 2_Normalize/config.json
+      - chat_template.jinja
+      - config.json
+      - config_sentence_transformers.json
+      - model.safetensors
+      - modules.json
+      - preprocessor_config.json
+      - processor_config.json
+      - sentence_bert_config.json
+      - tokenizer.json
+      - tokenizer.model
+      - tokenizer_config.json

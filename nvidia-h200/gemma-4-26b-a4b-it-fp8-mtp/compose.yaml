@@ -1,0 +1,61 @@
+services:
+  inference:
+    image: vllm/vllm-openai:v0.33.0@sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e
+    # vLLM's recipe for Gemma 4 26B-A4B (v0.33.0 tree): Red Hat's FP8-dynamic weights with an FP8
+    # KV cache, the gemma4 reasoning and tool parsers, and Google's MTP drafter
+    # (google/gemma-4-26B-A4B-it-assistant) with 1 draft token: on the H200 it gives 30 percent
+    # more throughput at 32 requests and 50 percent more at 128 than no drafter, and costs 25
+    # percent of the single-user speed (journal 2026-11-12; the recipe names 4 tokens, Blackwell
+    # used 2). vLLM 0.33 detects the drafter's Gemma4AssistantForCausalLM architecture and uses
+    # its own Gemma4 MTP path. The model's bundled chat template carries tool calls.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        exec vllm serve /models/model \
+          --served-model-name gemma-4-26b-a4b-it \
+          --host 0.0.0.0 --port 8080 \
+          --tensor-parallel-size 1 \
+          --gpu-memory-utilization 0.4006 \
+          --max-model-len 131072 \
+          --kv-cache-dtype fp8 \
+          --max-num-seqs 256 \
+          --max-num-batched-tokens 16384 \
+          --enable-prefix-caching \
+          --generation-config auto \
+          --limit-mm-per-prompt '{"image":4,"audio":0}' \
+          --reasoning-parser gemma4 \
+          --enable-auto-tool-choice \
+          --tool-call-parser gemma4 \
+          --speculative-config '{"model":"/models/draft","num_speculative_tokens":1}'
+    volumes:
+      - model:/models/model:ro
+      - draft:/models/draft:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 90
+      start_period: 120s
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "4"
+          memory: 12G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
+  draft:
+    x-ai-deploy:
+      weights: draft

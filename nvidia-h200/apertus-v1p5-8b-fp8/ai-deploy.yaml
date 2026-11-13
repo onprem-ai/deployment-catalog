@@ -1,0 +1,89 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Apertus v1.5 8B
+  subtitle: FP8
+  logo: assets/logo.svg
+  short_description: >-
+    FP8_DYNAMIC quantization of the official Apertus v1.5 8B on all linear projections. 10.7 GiB
+    (~1.7x compression). Baseline: onprem-ai/Apertus-v1.5-8B-FP8 release
+    (Apertus1p5ForConditionalGeneration). vLLM only.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 38654705664
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 17179869184
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 25769803776
+  measured_gpu_memory_bytes_per_device:
+    model_weights: 11220602061
+    runtime_overhead: 14750024991
+    kv_cache: 11564199444
+  measured_kv_cache_tokens_per_replica: 176480
+
+api:
+  routing_model_id: apertus-v1.5-8b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  released_at: '2026-08-03'
+  parameter_count: 8300000000
+  weights_disk_size_bytes: 12884901888
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/onprem-ai/Apertus-v1.5-8B-FP8/raw/e8bd629743737a47b191655cd538cdd7a5a707f1/LICENSE.txt
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: fp8
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 131072
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: huggingface
+      repository: onprem-ai/Apertus-v1.5-8B-FP8
+      revision: e8bd629743737a47b191655cd538cdd7a5a707f1
+      files:
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - model-apertus-model-00001-of-00004.safetensors
+      - model-apertus-model-00002-of-00004.safetensors
+      - model-apertus-model-00003-of-00004.safetensors
+      - model-apertus-model-00004-of-00004.safetensors
+      - model-vision_tokenizer-model.safetensors
+      - model-wavtokenizer-model.safetensors
+      - model.safetensors.index.json
+      - processor_config.json
+      - special_tokens_map.json
+      - tokenizer.json
+      - tokenizer_config.json

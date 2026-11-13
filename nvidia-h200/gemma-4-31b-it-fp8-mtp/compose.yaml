@@ -1,0 +1,61 @@
+services:
+  inference:
+    image: vllm/vllm-openai:v0.33.0@sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e
+    # vLLM's recipe for Gemma 4 31B (v0.33.0 tree): Red Hat's FP8-dynamic weights with an FP8 KV
+    # cache, the gemma4 reasoning and tool parsers, and Google's MTP drafter
+    # (google/gemma-4-31B-it-assistant) with 4 draft tokens. vLLM 0.33 detects the drafter's
+    # Gemma4AssistantForCausalLM architecture and uses its own Gemma4 MTP path, and gives the
+    # BF16 drafter its own quantization setting, so the Blackwell card's sed patch of
+    # gemma4_mtp.py is not needed. The model's bundled chat template carries tool calls; vLLM's
+    # recipe names its own tool template, which this card does not ship.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        exec vllm serve /models/model \
+          --served-model-name gemma-4-31b-it \
+          --host 0.0.0.0 --port 8080 \
+          --tensor-parallel-size 1 \
+          --gpu-memory-utilization 0.515 \
+          --max-model-len 131072 \
+          --kv-cache-dtype fp8 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 8192 \
+          --enable-prefix-caching \
+          --generation-config auto \
+          --limit-mm-per-prompt '{"image":4,"audio":0}' \
+          --reasoning-parser gemma4 \
+          --enable-auto-tool-choice \
+          --tool-call-parser gemma4 \
+          --speculative-config '{"model":"/models/draft","num_speculative_tokens":4,"num_speculative_tokens_per_batch_size":[[1,8,4],[9,256,2]]}'
+    volumes:
+      - model:/models/model:ro
+      - draft:/models/draft:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 90
+      start_period: 120s
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "4"
+          memory: 12G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
+  draft:
+    x-ai-deploy:
+      weights: draft

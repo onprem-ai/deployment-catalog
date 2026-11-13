@@ -1,0 +1,65 @@
+services:
+  inference:
+    image: vllm/vllm-openai:v0.33.0@sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e
+    # Ported from the official catalog's RTX PRO 6000 Blackwell card (gemma-4-e4b-it-nvfp4: NVFP4
+    # from cosmicproc, vLLM's gemma4-cu130 image). On the H200: Google's own BF16 weights quantized
+    # to FP8 at load (no trusted FP8 build exists; Red Hat's E4B repository is BF16), an FP8 KV
+    # cache, Google's MTP drafter (google/gemma-4-E4B-it-assistant), the gemma4 reasoning and tool
+    # parsers and the model's bundled chat template, on the catalog's vLLM v0.33.0 image. The
+    # number of draft tokens and the load settings come from the tuning (journal 2026-11-12).
+    # The vision and audio encoders stay BF16 (--quantization-config ignore), as in Red Hat's FP8
+    # builds of Gemma 4: FP8 at load in the vision encoder fails at start-up ("per_token_group_quant_8bit
+    # not implemented for Float8_e4m3fn"). Video input stays off.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        exec vllm serve /models/model \
+          --served-model-name gemma-4-e4b-it \
+          --host 0.0.0.0 --port 8080 \
+          --tensor-parallel-size 1 \
+          --gpu-memory-utilization 0.2003 \
+          --max-model-len 131072 \
+          --quantization fp8_per_block \
+          --quantization-config '{"ignore":["*vision_tower*","*audio_tower*","*embed_vision*","*embed_audio*"]}' \
+          --kv-cache-dtype fp8 \
+          --max-num-seqs 256 \
+          --max-num-batched-tokens 16384 \
+          --enable-prefix-caching \
+          --generation-config auto \
+          --limit-mm-per-prompt '{"image":4,"audio":0,"video":0}' \
+          --reasoning-parser gemma4 \
+          --enable-auto-tool-choice \
+          --tool-call-parser gemma4 \
+          --speculative-config '{"model":"/models/draft","num_speculative_tokens":1}'
+    volumes:
+      - model:/models/model:ro
+      - draft:/models/draft:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 90
+      start_period: 120s
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "4"
+          memory: 12G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
+  draft:
+    x-ai-deploy:
+      weights: draft

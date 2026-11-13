@@ -1,0 +1,53 @@
+services:
+  inference:
+    image: vllm/vllm-openai:v0.33.0@sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e
+    # vLLM v0.33.0 serves EmbeddingGemma2Model natively as a pooling model: mean pooling over the
+    # tokens and Google's 512 -> 768 projection, as in the checkpoint's sentence-transformers
+    # modules, then L2 normalization. BF16 as published: the model is 0.74B and bound by
+    # scheduling, not by weight memory. Prefix caching off: an embedding request reads its
+    # input once. Clients add Google's task prefixes themselves ("task: search result | query: "
+    # for queries, "title: none | text: " for documents; the list is in
+    # config_sentence_transformers.json) and may ask for 512, 256 or 128 dimensions.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        exec vllm serve /models/model \
+          --served-model-name embeddinggemma-2 \
+          --host 0.0.0.0 --port 8080 \
+          --runner pooling \
+          --dtype bfloat16 \
+          --gpu-memory-utilization 0.0286 \
+          --max-model-len 8192 \
+          --max-num-seqs 256 \
+          --max-num-batched-tokens 16384 \
+          --no-enable-prefix-caching \
+          --limit-mm-per-prompt '{"image":1,"audio":0,"video":0}' \
+          --hf-overrides '{"matryoshka_dimensions":[768,512,256,128]}'
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 60s
+    shm_size: 8gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 6G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "4"
+          memory: 8G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

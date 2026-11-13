@@ -1,0 +1,98 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Gemma 4 26B A4B IT
+  subtitle: FP8 · MTP · vision
+  logo: assets/logo.svg
+  short_description: >-
+    Google's Gemma 4 mixture-of-experts model (26B total, 4B active) in Red Hat's FP8 build, with
+    Google's own MTP drafter. Text and image input, thinking mode, tool calls, 128K context on a
+    single H200.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 66571993088
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 12884901888
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 60129542144
+  measured_gpu_memory_bytes_per_device:
+    model_weights: 27700629842
+    drafters: 839427840
+    cuda_graphs: 214748365
+    runtime_overhead: 9172271759
+    kv_cache: 26661009490
+  measured_kv_cache_tokens_per_replica: 726486
+
+api:
+  routing_model_id: gemma-4-26b-a4b-it
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+  anthropic:
+    container: inference
+    port: 8080
+    openapi: api/anthropic-messages.yaml
+    endpoints:
+    - POST /v1/messages
+
+model:
+  creator: Google
+  homepage: https://ai.google.dev/gemma
+  released_at: '2026-04-22'
+  parameter_count: 26000000000
+  active_parameter_count: 3800000000
+  architecture: moe
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://ai.google.dev/gemma/apache_2.md.txt
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: fp8-dynamic
+  speculative_decoding: mtp
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 131072
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: huggingface
+      repository: RedHatAI/gemma-4-26B-A4B-it-FP8-dynamic
+      revision: ed35d7abe5d940da41b4ff06eb482feb0be8cb44
+      files:
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - model.safetensors
+      - processor_config.json
+      - tokenizer.json
+      - tokenizer_config.json
+    draft:
+      provider: huggingface
+      repository: google/gemma-4-26B-A4B-it-assistant
+      revision: 6e5aaaf4c42b98394530b8fda2e95cadd65c151c
+      files:
+      - config.json
+      - generation_config.json
+      - model.safetensors
+      - tokenizer.json
+      - tokenizer_config.json

@@ -1,0 +1,72 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Jina Embeddings v4
+  logo: assets/logo.svg
+  short_description: >-
+    Jina AI's 3.8B multimodal embedding model -- text, images, and PDFs in a unified vector space.
+    Built on Qwen2.5-VL-3B. Dense (2048-dim, Matryoshka 128–2048) and ColBERT-style multi-vector
+    modes. Pre-merged retrieval adapter for vLLM.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 12884901888
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 8589934592
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 11811160064
+
+api:
+  routing_model_id: jina-embeddings-v4
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/embeddings
+    - GET /v1/models
+
+model:
+  released_at: '2025-06-23'
+  parameter_count: 3800000000
+  weights_disk_size_bytes: 8589934592
+  license:
+    expression: LicenseRef-Qwen-Research-License
+    name: Qwen Research License Agreement
+    url: https://huggingface.co/jinaai/jina-embeddings-v4/resolve/853c867b65b749f3c3c72a06868140d842e04f06/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: float16
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 32768
+    embedding: true
+  weights:
+    main:
+      provider: huggingface
+      repository: jinaai/jina-embeddings-v4-vllm-retrieval
+      revision: 1c64a04189fcd31b44753fc8decbf3837766c52e
+      files:
+      - chat_template.json
+      - config.json
+      - generation_config.json
+      - merges.txt
+      - model.safetensors
+      - model.safetensors.index.json
+      - preprocessor_config.json
+      - tokenizer.json
+      - tokenizer_config.json
+      - vocab.json

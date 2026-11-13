@@ -1,0 +1,44 @@
+services:
+  inference:
+    image: nvcr.io/nvidia/vllm:26.02-py3@sha256:1bec659df62970ce856523b67868ab9f92cf947946ee5e89cc6a9cabe9d783da
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        python3 -m vllm.entrypoints.openai.api_server \
+          --model /models/model \
+          --served-model-name qwen3-vl-embedding-2b \
+          --host 0.0.0.0 --port 8080 \
+          --runner pooling \
+          --convert embed \
+          --dtype bfloat16 \
+          --trust-remote-code \
+          --gpu-memory-utilization 0.0572 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 4096 \
+          --max-model-len 8192
+
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 4G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "4"
+          memory: 8G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

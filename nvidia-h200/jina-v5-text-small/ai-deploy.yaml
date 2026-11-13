@@ -1,0 +1,71 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Jina v5 Text Small
+  logo: assets/logo.svg
+  short_description: >-
+    Jina AI's 677M embedding model distilled from Qwen3-Embedding-4B. MTEB v2 71.7 -- best
+    quality-to-size ratio under 1B params. 32K context, Matryoshka dims (32–1024), 119+ languages.
+    Pre-merged retrieval adapter. Prefix queries with 'Query:' and documents with 'Document:'.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 8589934592
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 6442450944
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 6442450944
+
+api:
+  routing_model_id: jina-v5-text-small
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/embeddings
+    - GET /v1/models
+
+model:
+  released_at: '2026-02-18'
+  parameter_count: 677000000
+  weights_disk_size_bytes: 1288490189
+  license:
+    expression: CC-BY-NC-4.0
+    name: Creative Commons Attribution-NonCommercial 4.0 International
+    url: https://creativecommons.org/licenses/by-nc/4.0/legalcode.txt
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: bfloat16
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 32768
+    embedding: true
+  weights:
+    main:
+      provider: huggingface
+      repository: jinaai/jina-embeddings-v5-text-small-retrieval
+      revision: 6856e76bb72982e58de0620458a4e8b3614da340
+      files:
+      - 1_Pooling/config.json
+      - chat_template.jinja
+      - config.json
+      - config_sentence_transformers.json
+      - merges.txt
+      - model.safetensors
+      - modules.json
+      - tokenizer.json
+      - tokenizer_config.json
+      - vocab.json
