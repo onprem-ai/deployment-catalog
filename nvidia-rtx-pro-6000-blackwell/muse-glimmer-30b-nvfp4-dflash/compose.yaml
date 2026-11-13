@@ -20,6 +20,7 @@ services:
           --enable-metrics \
           --mem-fraction-static 0.78 \
           --context-length 131072 \
+          --max-running-requests 64 \
           --kv-cache-dtype fp8_e4m3 \
           --language-model-only \
           --fp8-gemm-backend flashinfer_cutlass \
@@ -28,7 +29,7 @@ services:
           --speculative-algorithm DFLASH \
           --speculative-draft-model-path meta-models/Muse-Glimmer-30B-assistant \
           --speculative-draft-model-quantization fp8 \
-          --speculative-dflash-block-size 5
+          --speculative-dflash-block-size 8
     volumes:
       - model:/models/model:ro
       - draft:/models/draft:ro
