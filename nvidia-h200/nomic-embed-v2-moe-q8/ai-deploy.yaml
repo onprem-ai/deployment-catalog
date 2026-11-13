@@ -1,0 +1,62 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Nomic Embed v2
+  logo: assets/logo.svg
+  short_description: >-
+    Nomic's text embedding model with Mixture of Experts architecture. Produces 768-dimension
+    embeddings, supports ~100 languages. Q8_0 quantization. EMBEDDING ONLY - no chat.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 2147483648
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 3221225472
+
+runtime:
+  engine: llama.cpp
+  compose: compose.yaml
+
+api:
+  routing_model_id: nomic-embed-v2
+  passthrough:
+  - path_prefix: /{routing_model_id}
+    container: inference
+    port: 8080
+    openapi: api/nomic-embed-v2.yaml
+    endpoints:
+    - POST /v1/embeddings
+
+model:
+  released_at: '2025-02-11'
+  parameter_count: 500000000
+  active_parameter_count: 300000000
+  weights_disk_size_bytes: 536870912
+  mixture_of_experts: true
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
+    file: licenses/source-0-LICENSE.txt
+  format: gguf
+  quantization: gguf-q8_0
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 512
+    embedding: true
+  weights:
+    main:
+      provider: huggingface
+      repository: nomic-ai/nomic-embed-text-v2-moe-GGUF
+      revision: ffbcf4c99e5d617dda10ec8c0e9f75754b0cbb80
+      files:
+      - nomic-embed-text-v2-moe.Q8_0.gguf

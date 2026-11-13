@@ -1,0 +1,46 @@
+services:
+  inference:
+    image: ghcr.io/ggml-org/llama.cpp:dig-e8d36f4dc2a72a1d@sha256:e8d36f4dc2a72a1df323748f6219c9dd11f662f7cb3b06a6b2916c9bf3866d89
+    # llama.cpp's own CUDA server image (release b9294), pinned by digest as on the catalog's
+    # qwen35-122b-a10b-q4km card. The Blackwell card runs a self-built image for SM120; the
+    # H200 (SM90) needs no special build. --cache-ram 0 switches off llama.cpp's prompt cache
+    # (8 GiB of host memory by default since b9294): an embedding request reads its text once,
+    # and under parallel load the cache outgrew the container's 4 GiB memory limit, so the
+    # kernel killed the server (exit 137).
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        set -euo pipefail
+        exec /app/llama-server \
+          -m /models/model/nomic-embed-text-v2-moe.Q8_0.gguf \
+          --host 0.0.0.0 --port 8080 \
+          -ngl 999 \
+          --flash-attn on \
+          -c 512 \
+          --cache-ram 0 \
+          --embedding
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 2G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "4"
+          memory: 3G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

@@ -1,0 +1,58 @@
+services:
+  inference:
+    image: vllm/vllm-openai:v0.33.0@sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e
+    # Settings from the catalog's Arete 27B H200 card, a fine-tune of this same Qwen3.8-27B
+    # architecture (hybrid: linear attention on 48 of 64 layers): FP8 KV cache, 128 sequences,
+    # 16,384 batched tokens, prefix caching, 128 GiB engine booking (Arete's tuning found the
+    # linear-attention state, not compute, fills the cache first), the qwen3 reasoning and
+    # qwen3_coder tool parsers. Unlike Arete, Qwen's own FP8 checkpoint keeps the built-in MTP
+    # head, so the card uses it (vLLM's recipe: method mtp, 3 draft tokens; the depth must be
+    # given, vLLM cannot read it from text_config). vLLM v0.33.0 carries the gated-delta-net
+    # speculative fixes the recipe asks for (vllm-project/vllm#51812, #51674).
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        exec vllm serve /models/model \
+          --served-model-name qwen3.8-27b \
+          --host 0.0.0.0 --port 8080 \
+          --tensor-parallel-size 1 \
+          --gpu-memory-utilization 0.9156 \
+          --max-model-len 262144 \
+          --kv-cache-dtype fp8 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 16384 \
+          --enable-prefix-caching \
+          --generation-config auto \
+          --limit-mm-per-prompt '{"image":4,"video":1}' \
+          --reasoning-parser qwen3 \
+          --enable-auto-tool-choice \
+          --tool-call-parser qwen3_coder \
+          --speculative-config '{"method":"mtp","num_speculative_tokens":3}'
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 120
+      start_period: 120s
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "4"
+          memory: 16G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

@@ -1,0 +1,75 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Qwen3 Embedding 8B
+  logo: assets/logo.svg
+  short_description: >-
+    #1 on Multilingual MTEB (70.58). Alibaba's 8B instruction-aware embedding model based on
+    Qwen3-8B-Base. 4096-dim embeddings, Matryoshka (32–4096), last-token pooling, 100+ languages.
+    Queries benefit from task instruction prefix.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    memory_bytes_per_device: 25769803776
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 6442450944
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 23622320128
+
+api:
+  routing_model_id: qwen3-embedding-8b
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/embeddings
+    - GET /v1/models
+
+model:
+  released_at: '2025-06-03'
+  parameter_count: 8000000000
+  weights_disk_size_bytes: 16106127360
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/Qwen/Qwen3-Embedding-8B/resolve/1d8ad4ca9b3dd8059ad90a75d4983776a23d44af/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  format: safetensors
+  quantization: bfloat16
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 32768
+    embedding: true
+  weights:
+    main:
+      provider: huggingface
+      repository: Qwen/Qwen3-Embedding-8B
+      revision: 1d8ad4ca9b3dd8059ad90a75d4983776a23d44af
+      files:
+      - 1_Pooling/config.json
+      - config.json
+      - config_sentence_transformers.json
+      - generation_config.json
+      - merges.txt
+      - model-00001-of-00004.safetensors
+      - model-00002-of-00004.safetensors
+      - model-00003-of-00004.safetensors
+      - model-00004-of-00004.safetensors
+      - model.safetensors.index.json
+      - modules.json
+      - tokenizer.json
+      - tokenizer_config.json
+      - vocab.json

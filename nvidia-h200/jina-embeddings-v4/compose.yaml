@@ -1,0 +1,46 @@
+services:
+  inference:
+    image: nvcr.io/nvidia/vllm:26.02-py3@sha256:1bec659df62970ce856523b67868ab9f92cf947946ee5e89cc6a9cabe9d783da
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        python3 -m vllm.entrypoints.openai.api_server \
+          --model /models/model \
+          --served-model-name jina-embeddings-v4 \
+          --host 0.0.0.0 --port 8080 \
+          --runner pooling \
+          --dtype float16 \
+          --trust-remote-code \
+          --pooler-config '{"pooling_type": "ALL", "normalize": false}' \
+          --max-model-len 8192 \
+          --limit-mm-per-prompt '{"image": 4}' \
+          --gpu-memory-utilization 0.0787 \
+          --max-num-seqs 128 \
+          --max-num-batched-tokens 4096 \
+
+
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 4G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "4"
+          memory: 8G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
