@@ -25,13 +25,13 @@ runtime:
 
 api:
   routing_model_id: nomic-embed-v2
-  passthrough:
-  - path_prefix: /{routing_model_id}
+  openai:
     container: inference
     port: 8080
-    openapi: api/nomic-embed-v2.yaml
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
     endpoints:
     - POST /v1/embeddings
+    - GET /v1/models
 
 model:
   released_at: '2025-02-11'
