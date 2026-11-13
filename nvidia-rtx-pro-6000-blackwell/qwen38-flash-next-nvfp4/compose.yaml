@@ -19,19 +19,19 @@ services:
           --enable-metrics \
           --tp 2 \
           --mem-fraction-static 0.92 \
-          --context-length 262144 --max-total-tokens 262144 --max-running-requests 32 \
+          --context-length 262144 --max-running-requests 48 \
           --quantization modelopt_fp4 \
           --fp4-gemm-backend flashinfer_cutlass \
           --page-size 64 \
+          --kv-cache-dtype bfloat16 \
           --chunked-prefill-size 4096 \
           --no-ple-offload-embedding \
           --linear-attn-prefill-backend triton \
           --linear-attn-decode-backend flashinfer \
           --mamba-ssm-dtype bfloat16 \
           --mamba-radix-cache-strategy extra_buffer \
-          --mamba-track-interval 64 \
-          --max-mamba-cache-size 192 \
-          --cuda-graph-max-bs-decode 32 \
+          --max-mamba-cache-size 288 \
+          --cuda-graph-max-bs-decode 48 \
           --speculative-algorithm NEXTN \
           --speculative-num-steps 3 \
           --speculative-eagle-topk 1 \
