@@ -8,18 +8,16 @@ services:
           --model /models/model \
           --served-model-name deepseek-v4-flash \
           --host 0.0.0.0 --port 8080 \
-          --trust-remote-code \
           --kv-cache-dtype fp8 \
           --block-size 256 \
           --tensor-parallel-size 2 \
           --disable-custom-all-reduce \
           --gpu-memory-utilization 0.98 \
-          --max-num-seqs 128 \
-          --max-model-len 262144 --max-num-seqs 8 --kv-cache-dtype fp8 \
+          --max-model-len 262144 --max-num-seqs 32 \
           --max-num-batched-tokens 4096 \
-          --max-cudagraph-capture-size 48 \
+          --max-cudagraph-capture-size 192 \
           --speculative-config '{"method":"dspark","num_speculative_tokens":5,"draft_sample_method":"probabilistic"}' \
-          --compilation-config '{"cudagraph_mode":"FULL_AND_PIECEWISE","custom_ops":["all"],"cudagraph_capture_sizes":[5,6,10,12,15,18,20,24,25,30,35,36,40,42,48]}' \
+          --compilation-config '{"cudagraph_mode":"FULL_AND_PIECEWISE","custom_ops":["all"],"cudagraph_capture_sizes":[5,6,10,12,15,18,20,24,25,30,35,36,40,42,48,60,72,84,96,120,144,168,192]}' \
           --async-scheduling \
           --no-scheduler-reserve-full-isl \
           --enable-chunked-prefill \
