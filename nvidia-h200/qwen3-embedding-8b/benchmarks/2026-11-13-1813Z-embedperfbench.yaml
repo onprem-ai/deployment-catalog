@@ -1,0 +1,43 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.0.0/embedding-benchmark.schema.json
+measured_on: '2026-11-13T18:13:33Z'
+subject:
+  hardware:
+    gpu:
+      product: nvidia-h200
+      count: 1
+  engine:
+    image: nvcr.io/nvidia/vllm:26.02-py3
+  compose_sha256: e29abc39eeb5a16544b620041944fd6642870ec4dd278b6f3d61954815eafd29
+run:
+  load_generator:
+    image: platform.registry.onprem.ai/platform/control-plane/load-generator:v5.4.0-rc.1@sha256:b7c5fb1b3047369db31056badf7e886a4f3a7c8de934c085092913d478c2bc05
+    version: 5.4.0-rc.1
+results:
+- workload: embed-text-query/1.0.0
+  vector_dimensions: 4096
+  stop_reason: plateau
+  plateau_concurrency: 40
+  levels:
+    concurrency: [1, 2, 4, 8, 12, 16, 20, 24, 32, 40, 48]
+    window_seconds: [0.27, 0.22, 0.16, 0.14, 0.19, 0.22, 0.26, 0.28, 0.33, 0.4, 0.48]
+    requests: [20, 20, 20, 20, 24, 32, 40, 48, 64, 80, 96]
+    requests_failed: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    inputs_per_second: [74.04, 97.28, 145.91, 192.99, 188.05, 218.76, 234.52, 260.25, 288.26, 298.04, 303.61]
+    input_tokens_per_second: [1995.3, 2594.2, 3994.3, 5060.7, 4957.3, 5838.1, 6218.7, 6940.1, 7506.7, 7870.7, 8061.5]
+    request_latency_seconds_p50: [0.0127, 0.0192, 0.0259, 0.0358, 0.0602, 0.0673, 0.081, 0.0871, 0.1074, 0.132, 0.1547]
+    request_latency_seconds_p90: [0.0131, 0.0206, 0.0282, 0.0396, 0.0654, 0.0688, 0.0849, 0.092, 0.1096, 0.134, 0.1595]
+    request_latency_seconds_p95: [0.0132, 0.0219, 0.0304, 0.0406, 0.0656, 0.0697, 0.0851, 0.0928, 0.1099, 0.1353, 0.162]
+- workload: embed-text-indexing/1.0.0
+  vector_dimensions: 4096
+  stop_reason: plateau
+  plateau_concurrency: 2
+  levels:
+    concurrency: [1, 2, 4, 8, 12, 16, 20, 24, 32]
+    window_seconds: [10.19, 8.78, 9.61, 11.32, 14.67, 19.64, 24.72, 29.8, 40.15]
+    requests: [20, 20, 20, 20, 24, 32, 40, 48, 64]
+    requests_failed: [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    inputs_per_second: [62.83, 76.57, 76.58, 76.31, 76.33, 76.58, 76.36, 76.25, 75.72]
+    input_tokens_per_second: [35283.2, 43095.4, 43082.9, 42899.6, 42928.4, 43015.5, 42953.5, 42867.3, 42545.5]
+    request_latency_seconds_p50: [0.4866, 0.8358, 1.6765, 3.3077, 5.0278, 6.6493, 8.3759, 10.0061, 13.3742]
+    request_latency_seconds_p90: [0.4936, 0.8392, 1.6971, 3.4004, 5.0333, 6.7431, 8.3864, 10.1038, 13.4638]
+    request_latency_seconds_p95: [0.4952, 0.8397, 1.6974, 3.4157, 5.0341, 6.7513, 8.3877, 10.1052, 13.4689]

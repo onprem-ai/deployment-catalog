@@ -1,0 +1,29 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.0.0/embedding-benchmark.schema.json
+measured_on: '2026-11-13T22:43:25Z'
+subject:
+  hardware:
+    gpu:
+      product: nvidia-h200
+      count: 1
+  engine:
+    image: ghcr.io/ggml-org/llama.cpp:dig-e8d36f4dc2a72a1d
+  compose_sha256: 334e2c404b44694bfb3b882b0cc2258a8b2c87f6142802dd8fd8b1bc1cdc8339
+run:
+  load_generator:
+    image: platform.registry.onprem.ai/platform/control-plane/load-generator:v5.4.0-rc.1@sha256:b7c5fb1b3047369db31056badf7e886a4f3a7c8de934c085092913d478c2bc05
+    version: 5.4.0-rc.1
+results:
+- workload: embed-text-query/1.0.0
+  vector_dimensions: 768
+  stop_reason: plateau
+  plateau_concurrency: 8
+  levels:
+    concurrency: [1, 2, 4, 8, 12, 16, 20, 24, 32]
+    window_seconds: [0.05, 0.04, 0.02, 0.02, 0.02, 0.03, 0.04, 0.05, 0.07]
+    requests: [20, 20, 20, 20, 24, 32, 40, 48, 64]
+    requests_failed: [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    inputs_per_second: [395.75, 592.1, 986.36, 1483.62, 1503.55, 1446.45, 1452.69, 1431.28, 1406.28]
+    input_tokens_per_second: [11239.2, 16973.6, 28686.6, 40163.8, 42517, 42278.4, 41329, 41825.1, 39888.6]
+    request_latency_seconds_p50: [0.0023, 0.0032, 0.004, 0.005, 0.0078, 0.0108, 0.0136, 0.0166, 0.0227]
+    request_latency_seconds_p90: [0.0025, 0.0034, 0.0041, 0.0052, 0.008, 0.0114, 0.0139, 0.0169, 0.0231]
+    request_latency_seconds_p95: [0.0025, 0.0034, 0.0041, 0.0052, 0.0081, 0.0114, 0.0139, 0.017, 0.0232]
