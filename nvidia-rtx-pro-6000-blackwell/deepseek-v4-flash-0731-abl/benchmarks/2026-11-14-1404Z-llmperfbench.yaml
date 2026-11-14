@@ -1,0 +1,91 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/benchmark.schema.json
+measured_on: '2026-11-14T14:04:58Z'
+journal: journal/2026-11-14-full-benchmark.md
+subject:
+  hardware:
+    gpu:
+      product: nvidia-rtx-pro-6000-blackwell
+      count: 2
+  engine:
+    image: onpremai/vllm-ds4f:0731-prebaked-v2
+  compose_sha256: 0770884aba8e53a0908a08bdb4a8f592445628cbabc6c7d28637073c416f2eee
+run:
+  load_generator:
+    image: platform.registry.onprem.ai/platform/control-plane/load-generator:v5.4.0-rc.1@sha256:b7c5fb1b3047369db31056badf7e886a4f3a7c8de934c085092913d478c2bc05
+    version: 5.4.0-rc.1
+results:
+- workload: max-prefill/1.0.0
+  stop_reason: plateau
+  plateau_concurrency: 8
+  levels:
+    concurrency: [1, 2, 4, 8, 12, 16, 20, 24, 32]
+    window_seconds: [24.03, 22.18, 22, 24, 32.32, 40.08, 51.23, 69.62, 81.74]
+    requests: [20, 20, 20, 20, 24, 32, 40, 48, 64]
+    requests_failed: [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    requests_per_second: [0.832, 0.947, 1.045, 1.125, 1.237, 1.198, 1.152, 1.049, 1.162]
+    prefill_tokens_per_second: [6779.7, 8091.9, 8882.55, 9497.67, 9556.46, 9347.47, 9540.87, 8996.86, 9568.42]
+    decode_tokens_per_second: [52.43, 60.44, 66.46, 79.06, 73.74, 74.29, 73.76, 67.68, 73.92]
+    decode_tokens_per_second_cv: [0.125, 0.043, 0.14, 0.101, 0.028, 0.021, 0.013, 0.079, 0.008]
+    time_to_first_token_seconds_p50: [0.822, 0.851, 0.887, 1.319, 4.94, 8.285, 11.899, 15.266, 22.318]
+    time_to_first_token_seconds_p90: [0.86, 1.251, 1.635, 2.748, 5.643, 9.258, 12.779, 19.939, 23.449]
+    time_to_first_token_seconds_p95: [0.87, 1.588, 1.637, 2.775, 5.883, 10.042, 13, 20.316, 23.858]
+    inter_token_latency_seconds_p50: [0.00581, 0.0193, 0.04375, 0.08317, 0.08646, 0.08461, 0.08198, 0.08757, 0.08185]
+    inter_token_latency_seconds_p90: [0.00675, 0.02084, 0.04889, 0.09559, 0.09436, 0.09487, 0.09441, 0.14613, 0.09805]
+    inter_token_latency_seconds_p95: [0.00724, 0.02094, 0.05359, 0.09786, 0.09683, 0.11282, 0.09557, 0.17118, 0.10151]
+    request_latency_seconds_p50: [1.205, 2.064, 3.7, 6.811, 10.227, 13.593, 17.052, 21.001, 27.519]
+    request_latency_seconds_p90: [1.26, 2.21, 4.325, 8.058, 11.679, 15.539, 18.342, 25.915, 29.025]
+    request_latency_seconds_p95: [1.276, 2.445, 5.301, 8.378, 12.243, 15.598, 18.616, 26.329, 29.285]
+    prompt_tokens_mean: [8147.1, 8156.6, 8147.5, 8147.6, 8137, 8143.1, 8141.7, 8136.3, 8146.1]
+    prompt_tokens_stddev: [62.9, 53.3, 41, 73.3, 48.9, 62.1, 61.1, 70.9, 74]
+    completion_tokens_mean: [64, 64, 64, 64, 64, 64, 64, 64, 64]
+    completion_tokens_stddev: [0, 0, 0, 0, 0, 0, 0, 0, 0]
+- workload: max-decode/1.1.0
+  stop_reason: plateau
+  plateau_concurrency: 8
+  levels:
+    concurrency: [1, 2, 4, 8, 12, 16, 20, 24, 32]
+    window_seconds: [112.73, 73.34, 56.55, 49.22, 62.16, 79, 101.39, 124.76, 161]
+    requests: [20, 20, 20, 20, 24, 32, 40, 48, 64]
+    requests_failed: [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    requests_per_second: [0.177, 0.286, 0.407, 0.569, 0.579, 0.595, 0.592, 0.569, 0.596]
+    prefill_tokens_per_second: [47.07, 75.92, 109.51, 152.18, 156, 158.72, 156.6, 153.74, 160.25]
+    decode_tokens_per_second: [181.49, 293.33, 427.64, 638.74, 591.65, 614.75, 599.29, 590.04, 610.81]
+    decode_tokens_per_second_cv: [0.051, 0.015, 0.083, 0.09, 0.035, 0.053, 0.045, 0.038, 0.034]
+    time_to_first_token_seconds_p50: [0.08, 0.098, 0.121, 0.152, 6.83, 13.029, 20.609, 27.143, 40.455]
+    time_to_first_token_seconds_p90: [0.083, 0.1, 0.123, 0.177, 9.674, 14.905, 23.585, 29.854, 43.037]
+    time_to_first_token_seconds_p95: [0.083, 0.1, 0.124, 0.179, 9.744, 15.493, 24.154, 30.569, 43.333]
+    inter_token_latency_seconds_p50: [0.00535, 0.00704, 0.00911, 0.01183, 0.01363, 0.01243, 0.01261, 0.0133, 0.01268]
+    inter_token_latency_seconds_p90: [0.00697, 0.00792, 0.01155, 0.01537, 0.01783, 0.0166, 0.01725, 0.01685, 0.01642]
+    inter_token_latency_seconds_p95: [0.0073, 0.008, 0.01237, 0.01649, 0.02021, 0.01746, 0.01759, 0.01709, 0.01717]
+    request_latency_seconds_p50: [5.544, 7.3, 9.439, 12.284, 21.057, 25.619, 33.397, 41.242, 53.848]
+    request_latency_seconds_p90: [7.215, 8.196, 11.939, 15.875, 24.69, 30.38, 37.668, 44.712, 57.57]
+    request_latency_seconds_p95: [7.544, 8.28, 12.773, 17.012, 25.017, 30.801, 38.4, 44.991, 58.405]
+    prompt_tokens_mean: [265.3, 264.1, 269, 267.7, 268.6, 267.5, 268.1, 270.9, 267.7]
+    prompt_tokens_stddev: [10.6, 9.2, 11, 13.2, 10.4, 10.9, 13.4, 12.5, 13.4]
+    completion_tokens_mean: [1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024]
+    completion_tokens_stddev: [0, 0, 0, 0, 0, 0, 0, 0, 0]
+- workload: mixed-load/1.1.0
+  stop_reason: plateau
+  plateau_concurrency: 12
+  levels:
+    concurrency: [1, 2, 4, 8, 12, 16, 20, 24, 32]
+    window_seconds: [53.15, 33.4, 23.95, 29.4, 38.67, 45.19, 50.67, 56.29, 73.98]
+    requests: [20, 20, 20, 20, 24, 32, 40, 48, 64]
+    requests_failed: [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    requests_per_second: [0.376, 0.629, 0.96, 1.292, 1.371, 1.084, 1.401, 1.368, 1.311]
+    prefill_tokens_per_second: [630.61, 1342.2, 1300.94, 2379.29, 2605.62, 1943.17, 2119.79, 2398.01, 2352.83]
+    decode_tokens_per_second: [79.33, 183.54, 338.28, 456.66, 439.06, 453.73, 461.63, 435.42, 452.75]
+    decode_tokens_per_second_cv: [0.153, 0.202, 0.092, 0.045, 0.083, 0.074, 0.043, 0.033, 0.058]
+    time_to_first_token_seconds_p50: [0.109, 0.184, 0.168, 0.226, 3.184, 7.68, 8.405, 12.201, 18.365]
+    time_to_first_token_seconds_p90: [5.468, 0.505, 0.395, 0.762, 6.35, 9.159, 10.157, 13.832, 22.774]
+    time_to_first_token_seconds_p95: [5.622, 0.845, 0.827, 0.806, 6.48, 10.15, 10.258, 14.205, 23.01]
+    inter_token_latency_seconds_p50: [0.00591, 0.00832, 0.01151, 0.0163, 0.01605, 0.01725, 0.0162, 0.01773, 0.01711]
+    inter_token_latency_seconds_p90: [0.00696, 0.00974, 0.01286, 0.02194, 0.02078, 0.02133, 0.01977, 0.02121, 0.02271]
+    inter_token_latency_seconds_p95: [0.00757, 0.01103, 0.01296, 0.02209, 0.02383, 0.02164, 0.02033, 0.02417, 0.02535]
+    request_latency_seconds_p50: [1.102, 1.734, 3.201, 4.621, 11.236, 13.231, 12.781, 16.793, 23.631]
+    request_latency_seconds_p90: [6.62, 6.095, 7.987, 12.944, 16.979, 21.126, 19.653, 26.325, 31.675]
+    request_latency_seconds_p95: [7.125, 9.3, 9.224, 17.307, 18.386, 24.229, 21.102, 27.03, 32.421]
+    prompt_tokens_mean: [1675.8, 1771.3, 1491.7, 2264.5, 1774.3, 1778.3, 1465.8, 1916.7, 1645.6]
+    prompt_tokens_stddev: [1892.4, 1963.8, 1788.1, 2526.9, 1881.1, 2104, 1225.7, 1816.5, 1876.1]
+    completion_tokens_mean: [211.8, 289.6, 352.4, 377.7, 421.3, 425.5, 329.3, 327.7, 346]
+    completion_tokens_stddev: [201.7, 190.8, 257, 300.3, 281, 242.2, 258, 226.5, 271.1]
