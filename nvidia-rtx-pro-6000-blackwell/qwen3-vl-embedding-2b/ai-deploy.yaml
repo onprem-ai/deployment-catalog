@@ -1,4 +1,4 @@
-$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
 
 display:
   name: Qwen3 VL Embedding 2B
@@ -22,6 +22,11 @@ hardware:
 runtime:
   engine: vllm
   compose: compose.yaml
+  measured_gpu_memory_bytes_per_device:
+    model_weights: 4574140170
+    runtime_overhead: 1467419198
+    kv_cache: 2340757176
+  measured_kv_cache_tokens_per_replica: 20400
 
 api:
   routing_model_id: qwen3-vl-embedding-2b

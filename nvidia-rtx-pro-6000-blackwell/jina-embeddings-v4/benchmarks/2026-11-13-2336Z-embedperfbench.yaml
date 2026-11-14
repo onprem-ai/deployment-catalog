@@ -1,0 +1,43 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.0.0/embedding-benchmark.schema.json
+measured_on: '2026-11-13T23:36:33Z'
+subject:
+  hardware:
+    gpu:
+      product: nvidia-rtx-pro-6000-blackwell
+      count: 1
+  engine:
+    image: nvcr.io/nvidia/vllm:26.02-py3
+  compose_sha256: 9da767e1e9a6e81194fc9cd5eaaee5a1a6cff5a5a9e4ddfd9fb49bfa99e24e6b
+run:
+  load_generator:
+    image: platform.registry.onprem.ai/platform/control-plane/load-generator:v5.4.0-rc.1@sha256:b7c5fb1b3047369db31056badf7e886a4f3a7c8de934c085092913d478c2bc05
+    version: 5.4.0-rc.1
+results:
+- workload: embed-text-query/1.0.0
+  vector_dimensions: 2048
+  stop_reason: plateau
+  plateau_concurrency: 96
+  levels:
+    concurrency: [1, 2, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80, 96, 112, 128]
+    window_seconds: [0.2, 0.12, 0.08, 0.06, 0.07, 0.09, 0.1, 0.11, 0.14, 0.14, 0.17, 0.21, 0.22, 0.25, 0.35, 0.4]
+    requests: [20, 20, 20, 20, 24, 32, 40, 48, 64, 80, 96, 128, 160, 192, 224, 256]
+    requests_failed: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    inputs_per_second: [101.07, 169.42, 300.94, 434.35, 541.48, 593.96, 632.84, 708.29, 771.46, 857.97, 852.92, 942.95, 1116.8, 1184.98, 1151.85, 1100.8]
+    input_tokens_per_second: [2203.4, 3767.6, 6608, 9974, 12055, 13020.4, 13892.4, 15462.9, 16524, 18484.8, 18706.2, 20360.1, 24106.5, 25554.1, 24632.3, 24004.3]
+    request_latency_seconds_p50: [0.0095, 0.0112, 0.0117, 0.0195, 0.0227, 0.0268, 0.032, 0.0356, 0.0429, 0.0465, 0.0543, 0.0718, 0.0671, 0.0761, 0.0805, 0.1122]
+    request_latency_seconds_p90: [0.0099, 0.0114, 0.0155, 0.0198, 0.023, 0.0276, 0.0339, 0.0371, 0.0449, 0.0477, 0.058, 0.0948, 0.0845, 0.1058, 0.1184, 0.1451]
+    request_latency_seconds_p95: [0.0106, 0.0116, 0.016, 0.0201, 0.023, 0.0283, 0.0343, 0.0372, 0.0454, 0.0481, 0.059, 0.0954, 0.0864, 0.1065, 0.1211, 0.1474]
+- workload: embed-text-indexing/1.0.0
+  vector_dimensions: 2048
+  stop_reason: plateau
+  plateau_concurrency: 2
+  levels:
+    concurrency: [1, 2, 4, 8, 12, 16, 20, 24, 32]
+    window_seconds: [6.92, 6.7, 7.35, 8.68, 11.29, 15.22, 19.12, 23.04, 30.9]
+    requests: [20, 20, 20, 20, 24, 32, 40, 48, 64]
+    requests_failed: [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    inputs_per_second: [92.54, 100.24, 100.15, 99.49, 99.22, 98.85, 98.75, 98.61, 98.37]
+    input_tokens_per_second: [49200.3, 53264.8, 53185.2, 52912.8, 52727.6, 52495, 52496.2, 52367.4, 52262.7]
+    request_latency_seconds_p50: [0.339, 0.612, 1.3082, 2.5533, 3.8859, 5.1466, 6.4717, 7.8041, 10.3937]
+    request_latency_seconds_p90: [0.3444, 0.689, 1.3108, 2.6308, 3.8902, 5.2248, 6.5465, 7.808, 10.495]
+    request_latency_seconds_p95: [0.3464, 0.6899, 1.3116, 2.6336, 3.8907, 5.2262, 6.5497, 7.8082, 10.4957]

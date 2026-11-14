@@ -1,4 +1,4 @@
-$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
 
 display:
   name: Jina Embeddings v4
@@ -23,6 +23,11 @@ hardware:
 runtime:
   engine: vllm
   compose: compose.yaml
+  measured_gpu_memory_bytes_per_device:
+    model_weights: 7687991459
+    runtime_overhead: 2244120413
+    kv_cache: 4831838208
+  measured_kv_cache_tokens_per_replica: 131120
 
 api:
   routing_model_id: jina-embeddings-v4
