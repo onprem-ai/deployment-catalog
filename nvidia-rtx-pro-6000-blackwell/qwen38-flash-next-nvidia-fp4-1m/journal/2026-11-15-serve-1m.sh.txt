@@ -1,0 +1,35 @@
+vllm serve /models/model --served-model-name qwen38-flash-next \
+    --hf-overrides '{"text_config": {"rope_parameters": {"mrope_interleaved": true, "mrope_section": [11, 11, 10], "partial_rotary_factor": 0.25, "rope_theta": 10000000, "rope_type": "yarn", "factor": 4.0, "original_max_position_embeddings": 262144}, "max_position_embeddings": 1048576}}' \
+    --host 0.0.0.0 \
+    --port 8000 \
+    --async-scheduling \
+    --block-size 64 \
+    --compilation-config '{"cudagraph_mode":"FULL_AND_PIECEWISE","custom_ops":["all"]}' \
+    --decode-context-parallel-size 1 \
+    --dtype bfloat16 \
+    --enable-auto-tool-choice \
+    --enable-chunked-prefill \
+    --no-enable-flashinfer-autotune \
+    --enable-prefix-caching \
+    --enable-prompt-tokens-details \
+    --gdn-decode-kernel b12x \
+    --gpu-memory-utilization 0.975 \
+    --kv-cache-dtype fp8 \
+    --no-language-model-only \
+    --linear-backend b12x \
+    --load-format instanttensor \
+    --mamba-cache-mode align \
+    --mamba-ssm-cache-dtype auto \
+    --max-cudagraph-capture-size 64 \
+    --max-model-len 1048576 \
+    --max-num-batched-tokens 6019 \
+    --max-num-seqs 16 \
+    --mm-encoder-tp-mode data \
+    --mm-processor-cache-gb 0.0 \
+    --moe-backend b12x \
+    --pipeline-parallel-size 1 \
+    --quantization modelopt_mixed \
+    --reasoning-parser qwen3 \
+    --speculative-config '{"method":"mtp","draft_sample_method":"probabilistic","rejection_sample_method":"standard","moe_backend":"b12x","num_speculative_tokens":3}' \
+    --tensor-parallel-size 1 \
+    --tool-call-parser qwen3_xml
