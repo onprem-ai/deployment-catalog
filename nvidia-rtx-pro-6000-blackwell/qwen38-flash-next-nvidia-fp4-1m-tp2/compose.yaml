@@ -6,9 +6,9 @@ services:
     image: ghcr.io/local-inference-lab/vllm:release-10152026@sha256:745feb916ee816f5409fd58386114be4f22fbede7f9c0e0a7b8c4fe8dac0fb29
     # The command is NVIDIA's for RTX PRO 6000, unchanged, with these changes:
     # - --tensor-parallel-size 2 (the community TP2 profile changes only this) and
-    #   --max-num-seqs 32, since two GPUs hold about six times the KV cache, and
-    #   --max-cudagraph-capture-size 128 (32 sequences x 4 tokens per MTP step), so
-    #   every batch up to 32 sequences runs in CUDA graphs;
+    #   --max-num-seqs 64, since two GPUs hold about six times the KV cache, and
+    #   --max-cudagraph-capture-size 256 (64 sequences x 4 tokens per MTP step), so
+    #   every batch up to 64 sequences runs in CUDA graphs;
     # - the model path and name, and the API port 8080;
     # - --max-model-len 1048576 and --hf-overrides, which switch the rope from the
     #   checkpoint's native type to YaRN, factor 4 over the trained 262,144 positions
@@ -35,17 +35,17 @@ services:
           --enable-prefix-caching \
           --enable-prompt-tokens-details \
           --gdn-decode-kernel b12x \
-          --gpu-memory-utilization 0.975 \
+          --gpu-memory-utilization 0.95 \
           --kv-cache-dtype fp8 \
           --no-language-model-only \
           --linear-backend b12x \
           --load-format instanttensor \
           --mamba-cache-mode align \
           --mamba-ssm-cache-dtype auto \
-          --max-cudagraph-capture-size 128 \
+          --max-cudagraph-capture-size 256 \
           --max-model-len 1048576 \
           --max-num-batched-tokens 6019 \
-          --max-num-seqs 32 \
+          --max-num-seqs 64 \
           --mm-encoder-tp-mode data \
           --mm-processor-cache-gb 0.0 \
           --moe-backend b12x \
