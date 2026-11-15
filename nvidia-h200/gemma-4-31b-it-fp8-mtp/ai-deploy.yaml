@@ -7,7 +7,7 @@ display:
   short_description: >-
     Google's Gemma 4 31B dense model in Red Hat's FP8 build, with Google's own MTP drafter for faster
     answers. Text and image input, thinking mode, tool calls, 128K context on a single H200.
-  maturity: experimental
+  maturity: stable
   author: onprem-ai
 
 hardware:

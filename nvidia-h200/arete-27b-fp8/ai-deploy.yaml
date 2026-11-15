@@ -8,7 +8,7 @@ display:
     Nous Research's post-trained Qwen3.8-27B with reinforced western values, quantized to FP8 by
     vLLM at load from the official BF16 weights, with the DFlash2 drafter of Qwen3.8-27B.
     Reasoning, tool calls and 256K context on a single H200 (141 GB).
-  maturity: experimental
+  maturity: stable
   author: onprem-ai
 
 hardware:

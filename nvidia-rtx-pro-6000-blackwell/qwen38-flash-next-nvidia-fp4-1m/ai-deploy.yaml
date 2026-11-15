@@ -9,7 +9,7 @@ display:
     official FP4 checkpoint, on one RTX PRO 6000 Blackwell. YaRN rope scaling (factor 4) extends
     the trained 262K context to 1,048,576 tokens per request; FP8 KV cache, MTP speculative
     decoding, PLE n-gram table in host memory.
-  maturity: experimental
+  maturity: stable
   author: onprem-ai
 
 hardware:

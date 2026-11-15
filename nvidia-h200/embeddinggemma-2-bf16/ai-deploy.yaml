@@ -8,7 +8,7 @@ display:
     Google DeepMind's open embedding model (740M, 270M for text): text, code, images, audio and
     video in one 768-dimensional space, 100+ languages, 8K context, Matryoshka truncation to 512,
     256 or 128 dimensions. Takes a small part of one H200.
-  maturity: experimental
+  maturity: stable
   author: onprem-ai
 
 hardware:

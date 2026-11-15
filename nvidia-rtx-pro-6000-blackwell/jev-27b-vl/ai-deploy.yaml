@@ -9,7 +9,7 @@ display:
     typed decisions over text and images (yes/no, choice, 0-5 score) through the jev-27b-vl-decision
     LoRA module, and generation with reasoning, tool use and image input through the base model. Up
     to 8 requests run at once.
-  maturity: experimental
+  maturity: stable
   author: onprem-ai
 
 hardware:

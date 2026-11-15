@@ -8,7 +8,7 @@ display:
     OpenAI's open-weight reasoning model (117B, 5.1B active) in its native MXFP4 weights on vLLM,
     with NVIDIA's EAGLE3 drafter. Reasoning efforts, tool calls, 128K context on a single H200
     (141 GB).
-  maturity: experimental
+  maturity: stable
   author: onprem-ai
 
 hardware:
