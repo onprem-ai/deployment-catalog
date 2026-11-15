@@ -6,7 +6,7 @@ display:
   short_description: >-
     Nomic's text embedding model with Mixture of Experts architecture. Produces 768-dimension
     embeddings, supports ~100 languages. Q8_0 quantization. EMBEDDING ONLY - no chat.
-  maturity: experimental
+  maturity: stable
   author: onprem-ai
 
 hardware:

@@ -8,7 +8,7 @@ display:
     Google DeepMind's efficient Gemma 4 model (4.5B effective parameters) on vLLM, quantized to FP8
     at load from Google's BF16 weights, with Google's MTP drafter. Text and image input, reasoning,
     tool calls, 128K context. Takes a small part of one H200.
-  maturity: experimental
+  maturity: stable
   author: onprem-ai
 
 hardware:

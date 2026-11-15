@@ -9,7 +9,7 @@ display:
     serves calibrated typed decisions (yes/no, choice over 2-16 options, 0-5 score) through the
     jev-9b-decision LoRA module, and ordinary text generation with reasoning and tool use through
     the base model. Text input only.
-  maturity: experimental
+  maturity: stable
   author: onprem-ai
 
 hardware:
