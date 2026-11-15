@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""needle.py BASE_URL MODEL TARGET_TOKENS [TARGET_TOKENS ...]
+
+Hidden-number test at long context: for each target length, prompts of varied filler
+sentences (so no repeated block helps the model) with one secret code placed at 10, 50
+and 90 percent depth. Sizes the prompt in the engine's own tokens from one calibration
+request. Thinking off, temperature 0. Prints one line per probe.
+"""
+import random, sys, time
+import httpx
+
+base, model, targets = sys.argv[1].rstrip("/"), sys.argv[2], [int(x) for x in sys.argv[3:]]
+c = httpx.Client(timeout=3600)
+rng = random.Random(7)
+subjects = ["The committee", "The engineering team", "A regional office", "The finance group", "The research lab",
+            "An external auditor", "The planning board", "The support desk", "A field crew", "The archive staff"]
+verbs = ["reviewed", "updated", "postponed", "summarised", "approved", "questioned", "documented", "rescheduled"]
+objects = ["the quarterly logistics report", "the warehouse inventory", "the vendor contract", "the travel budget",
+           "the safety checklist", "the server migration plan", "the training schedule", "the customer survey"]
+tails = ["before the holiday.", "after a short delay.", "with minor changes.", "for the second time.",
+         "without objections.", "at the request of the director.", "during the morning session."]
+
+
+def sentence():
+    return f"{rng.choice(subjects)} {rng.choice(verbs)} {rng.choice(objects)} {rng.choice(tails)} "
+
+
+def tokens(text):
+    r = c.post(f"{base}/chat/completions", json={"model": model, "max_tokens": 1,
+               "messages": [{"role": "user", "content": text}], "chat_template_kwargs": {"enable_thinking": False}})
+    r.raise_for_status()
+    return r.json()["usage"]["prompt_tokens"]
+
+
+sample = "".join(sentence() for _ in range(400))
+per_sentence = (tokens(sample) - tokens("x")) / 400
+for target in targets:
+    n = int((target - 200) / per_sentence)
+    body = [sentence() for _ in range(n)]
+    for depth in (0.1, 0.5, 0.9):
+        code = f"{rng.randint(100000, 999999)}"
+        parts = list(body)
+        parts.insert(int(n * depth), f"The secret vault code is {code}. ")
+        q = "".join(parts) + "\n\nWhat is the secret vault code mentioned above? Answer with the number only."
+        t = time.time()
+        try:
+            r = c.post(f"{base}/chat/completions", json={"model": model, "max_tokens": 32, "temperature": 0,
+                       "messages": [{"role": "user", "content": q}], "chat_template_kwargs": {"enable_thinking": False}})
+            j = r.json()
+            if r.status_code != 200:
+                print(f"target={target} depth={depth} HTTP {r.status_code}: {str(j)[:200]}", flush=True)
+                continue
+            content = (j["choices"][0]["message"].get("content") or "").strip()
+            print(f"target={target} depth={depth} prompt_tokens={j['usage']['prompt_tokens']} "
+                  f"{'PASS' if code in content else 'FAIL'} want={code} got={content[:30]!r} {time.time()-t:.1f}s", flush=True)
+        except Exception as e:  # noqa: BLE001 -- printed with its reason
+            print(f"target={target} depth={depth} error {type(e).__name__}: {e}", flush=True)
