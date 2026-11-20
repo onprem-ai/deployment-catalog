@@ -15,7 +15,9 @@ services:
     #   (same theta and M-RoPE sections), so one request may hold 1,048,576 tokens;
     # - --gpu-memory-utilization is the deploy's share of the engine booking.
     # FP8 KV cache (--kv-cache-dtype fp8) and MTP with 3 draft tokens are NVIDIA's.
-    # VLLM_PLE_CPU_OFFLOAD=1 keeps the PLE n-gram table in host memory (host booking).
+    # VLLM_PLE_CPU_OFFLOAD=0: the PLE n-gram table stays in GPU memory. With 1 (NVIDIA's
+    # one-GPU setting) each tensor-parallel worker keeps its own ~20 GB copy in host RAM;
+    # at the 48G limit the container thrashes and takes the host down (ain-2wx1le, 2026-11-19).
     entrypoint: [bash, -c]
     command:
       - |-
@@ -102,7 +104,7 @@ services:
       VLLM_MTP_NVFP4_LM_HEAD: "1"
       VLLM_MXFP8_LM_HEAD: "0"
       VLLM_PCIE_ALLREDUCE_BACKEND: "b12x"
-      VLLM_PLE_CPU_OFFLOAD: "1"
+      VLLM_PLE_CPU_OFFLOAD: "0"
       VLLM_QWEN3_8_FLASH_NEXT_HC_TP: "0"
       VLLM_QWEN3_8_FLASH_NEXT_MTP_COMPACT: "1"
       VLLM_QWEN3_8_FLASH_NEXT_OVERLAP: "1"
