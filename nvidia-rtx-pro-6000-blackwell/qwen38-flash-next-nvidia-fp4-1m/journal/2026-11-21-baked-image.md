@@ -10,7 +10,7 @@ specific to one GPU and one model, so the kernels it needs are known: they are i
 
 Only `image:` in `compose.yaml`. The command, the environment, the resources and the memory figures are unchanged.
 
-`onpremai/vllm-qwen38-flash-next:20261121-s3-1gpu` is the pinned image plus:
+`onpremai/vllm-qwen38-flash-next:20261121-baked-1gpu` is the pinned image plus:
 
 1. the warmed caches of this profile (`/root/.cache/b12x`, `/root/.triton/cache`, `/root/.nv/ComputeCache`, about 680 MB),
 2. without the files a warmed replica never loads (NVIDIA PyTorch container leftovers, TransformerEngine, apex, DALI,
