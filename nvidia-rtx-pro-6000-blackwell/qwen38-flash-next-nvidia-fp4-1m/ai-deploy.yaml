@@ -20,7 +20,7 @@ hardware:
   cpu:
     architecture: amd64
   memory:
-    host_bytes: 51539607552
+    host_bytes: 38654705664                # 36 GiB: measured 31.6 GiB at rest, 33.9 GiB at the peak
 
 runtime:
   engine: vllm
