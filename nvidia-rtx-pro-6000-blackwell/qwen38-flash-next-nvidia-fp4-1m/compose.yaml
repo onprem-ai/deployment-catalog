@@ -119,18 +119,23 @@ services:
       retries: 120
       start_period: 1800s
     shm_size: 32gb
+    # Host RAM per replica, measured (journal/2026-11-21-host-ram.md): 31.6 GiB resident at rest and 33.9 GiB at the
+    # peak while the weights load. 26.8 GiB of it is the PLE table (VLLM_PLE_CPU_OFFLOAD=1), which the engine keeps in
+    # CUDA-mapped host memory; the table is not charged to the container's cgroup on the measured host, so the limit
+    # does not hold it. Two replicas need about 63 GiB and do not fit a 61 GiB host.
+    # The reservation is what a replica takes from the host; the limit is set above it for hosts that do charge the table.
     deploy:
       resources:
         reservations:
           cpus: "4"
-          memory: 24G
+          memory: 36G
           devices:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
         limits:
           cpus: "16"
-          memory: 48G
+          memory: 40G
 
 volumes:
   model:
