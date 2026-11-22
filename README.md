@@ -19,6 +19,14 @@
   deployed independently or in 1 click on the <a href="https://onprem.ai">onprem.ai</a> platform.
 </p>
 
+## The `abliterated` branch
+
+This branch holds **only abliterated (decensored) profiles**: models whose safety refusals have
+been substantially removed. It is not a copy of `main`. To offer them next to the official
+profiles, add this repository a second time under **Configuration → Catalogs**, with the branch
+`abliterated`. Each profile here names the official profile it is based on; changes to the
+official one are carried over here by hand.
+
 ## Layout
 
 Each top-level directory holds the deploy profiles for one GPU, for example
