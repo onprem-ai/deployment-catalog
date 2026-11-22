@@ -16,7 +16,7 @@ hardware:
   gpu:
     product: nvidia-rtx-pro-6000-blackwell
     count: 2
-    memory_bytes_per_device: 102005473280
+    memory_bytes_per_device: 100931731456   # 94 GiB: a GPU shows 94.97 GiB free; the measured peak is 93.11 GiB
   cpu:
     architecture: amd64
   memory:
