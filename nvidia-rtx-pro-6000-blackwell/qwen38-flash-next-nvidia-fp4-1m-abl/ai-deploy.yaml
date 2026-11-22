@@ -1,0 +1,123 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Qwen3.8 Flash Next Abliterated
+  subtitle: NVIDIA FP4 · 1M context · MTP · 1× GPU
+  logo: assets/logo.svg
+  short_description: >-
+    Abliterated (decensored) Qwen3.8 Flash Next: NVIDIA's official FP4 checkpoint with the refusal
+    directions removed from the 48 attention output projections (still MXFP8), all else byte-identical.
+    176B-total / 6B-active multimodal MoE on one RTX PRO 6000 Blackwell; YaRN 1,048,576-token context, FP8 KV cache, MTP,
+    PLE n-gram table in host memory. Engine setup of the official card. Uncensored -- use responsibly. EXPERIMENTAL.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    memory_bytes_per_device: 100931731456   # 94 GiB (deployment-catalog #26): a GPU shows 94.97 GiB free; the official card's measured peak is 93.32 GiB
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 38654705664                # 36 GiB: measured 31.6 GiB at rest, 33.9 GiB at the peak
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 99857989632
+  measured_gpu_memory_bytes_per_device:
+    model_weights: 76998026199
+    cuda_graphs: 697932185
+    runtime_overhead: 5190954518
+    kv_cache: 17308718202
+  measured_kv_cache_tokens_per_replica: 1114309
+
+api:
+  routing_model_id: qwen3.8-flash-next-abliterated
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+    smoke_test:
+      request:
+        headers: {}
+        body:
+          messages:
+          - role: user
+            content: say hello in one word
+          max_tokens: 16
+          temperature: 0
+          stream: false
+          chat_template_kwargs:
+            enable_thinking: false
+      expect:
+        status: 200
+
+model:
+  released_at: '2026-11-20'
+  parameter_count: 176000000000
+  active_parameter_count: 6000000000
+  weights_disk_size_bytes: 102259308071
+  license:
+    expression: LicenseRef-NVIDIA-Open-Model-Agreement AND LicenseRef-Qwen-Community-License-1.0
+    name: NVIDIA Open Model Agreement; base model under the Qwen Community License 1.0
+    url: https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-agreement/
+    file: licenses/source-1-NVIDIA-Open-Model-Agreement.txt
+  mixture_of_experts: true
+  format: safetensors
+  quantization: nvfp4-mixed-precision
+  speculative_decoding: mtp
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 1048576
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: onprem-ai
+      repository: onprem-ai--Qwen3.8-Flash-Next-FP4-abliterated-v2
+      files:
+      - LICENSE
+      - LICENSE-Qwen
+      - NOTICE
+      - abliteration_report.json
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - merges.txt
+      - model-00001-of-00021.safetensors
+      - model-00002-of-00021.safetensors
+      - model-00003-of-00021.safetensors
+      - model-00004-of-00021.safetensors
+      - model-00005-of-00021.safetensors
+      - model-00006-of-00021.safetensors
+      - model-00007-of-00021.safetensors
+      - model-00008-of-00021.safetensors
+      - model-00009-of-00021.safetensors
+      - model-00010-of-00021.safetensors
+      - model-00011-of-00021.safetensors
+      - model-00012-of-00021.safetensors
+      - model-00013-of-00021.safetensors
+      - model-00014-of-00021.safetensors
+      - model-00015-of-00021.safetensors
+      - model-00016-of-00021.safetensors
+      - model-00017-of-00021.safetensors
+      - model-00018-of-00021.safetensors
+      - model-00019-of-00021.safetensors
+      - model-00020-of-00021.safetensors
+      - model-00021-of-00021.safetensors
+      - model.safetensors.index.json
+      - preprocessor_config.json
+      - tokenizer.json
+      - tokenizer_config.json
+      - verify_report.json
+      - video_preprocessor_config.json
+      - vocab.json
