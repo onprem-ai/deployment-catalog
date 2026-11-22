@@ -1,0 +1,99 @@
+# onpremai/sglang-dsv41-disk-engram, pinned by digest. Build source: onprem-ai/platform-alpha,
+# dev/inference-engine-images/sglang-dsv41-disk-engram (Dockerfile, build.sh). It is upstream
+# SGLang (lmsysorg/sglang@sha256:c4ca6511..., built 2026-09-10, flashinfer 0.6.18) plus:
+#   - the disk-Engram adapter (sybil-solutions, MIT; byte-identical with
+#     soloptimizer/deepseek-v4.1-flash-4x-rtx-pro-6000@34047e42), its AIO row reader compiled
+#   - SGLang's flash_mla_sm120.py with sybil-solutions PR #4 and DSV41_SM120_PREFILL_BACKEND
+#     (dec64: prefill through the FlashInfer decode kernel in 64-token slices; see the journal)
+#   - kernel caches (FlashInfer autotune and JIT, Triton) from a checked GPU warmup with the
+#     command below; with other engine arguments the engine autotunes again at start
+#   - debug tools, off unless switched on: DSV41_SM120_PREFILL_CHECK,
+#     DSV41_SM120_PREFILL_MODE_FILE, /opt/dsv41/bin/selftest.py, tcp_forward.py
+# The image's entrypoint (/opt/dsv41/bin/dsv41-start) builds a view of the checkpoint without
+# the two Engram tables, then runs the command. The adapter reads Engram rows with pread /
+# native AIO on O_DIRECT (allowed by Docker's default seccomp profile), keeps a bounded RAM
+# cache of DSV41_CACHE_GIB in total, and never allocates the full tables. No io_uring, no mlock.
+services:
+  inference:
+    image: onpremai/sglang-dsv41-disk-engram:c4ca651-20261122@sha256:1c991c1a1cd438f452e8c86d2b7e6e21bf137b0680fab6a732d8366ef2ce59bd
+    command:
+      - python3
+      - -m
+      - sglang.launch_server
+      - --model-path
+      - /opt/model-view
+      - --served-model-name
+      - deepseek-v4.1-flash
+      - --trust-remote-code
+      - --load-format
+      - safetensors
+      - --model-loader-extra-config
+      - '{"enable_multithread_load": false}'
+      - --tp
+      - "4"
+      - --ep-size
+      - "4"
+      - --attention-backend
+      - dsv4
+      - --moe-runner-backend
+      - flashinfer_mxfp4
+      - --mem-fraction-static
+      - "0.85"
+      - --chunked-prefill-size
+      - "2048"
+      - --context-length
+      - "131072"
+      - --max-running-requests
+      - "8"
+      - --cuda-graph-max-bs-decode
+      - "8"
+      - --speculative-algorithm
+      - DSPARK
+      - --speculative-dspark-block-size
+      - "5"
+      - --enable-decoder-swa-bounded-replay
+      - --tool-call-parser
+      - deepseekv41
+      - --reasoning-parser
+      - deepseek-v41
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+    environment:
+      PYTHONPATH: "/opt/dsv41/adapter"
+      PYTHONUNBUFFERED: "1"
+      TQDM_DISABLE: "1"
+      DSV41_SM120_PREFILL_BACKEND: "dec64"
+      DSV41_SOURCE: "/models/model"
+      OFFLOAD_MODE: "nvme"
+      DSV41_CACHE_GIB: "8"
+      DSV41_ENGRAM_IO_DEPTH: "64"
+      NCCL_IB_DISABLE: "1"
+      NCCL_P2P_LEVEL: "SYS"
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '4'
+          memory: 16G
+          devices:
+            - driver: nvidia
+              count: 4
+              capabilities: [gpu]
+        limits:
+          cpus: '24'
+          memory: 40G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
