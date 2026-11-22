@@ -8,7 +8,7 @@ display:
     Alibaba's dense 27B hybrid-attention model in Qwen's official block-scaled FP8 checkpoint on vLLM,
     with its built-in MTP head for speculative decoding. Text, image and video input, reasoning, tool
     calls and 256K context on a single H200 (141 GB).
-  maturity: experimental
+  maturity: stable
   author: onprem-ai
 
 hardware:

@@ -1,4 +1,4 @@
-$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1/ai-deploy.schema.json
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
 
 display:
   name: Qwen3.6 35B-A3B
@@ -17,7 +17,7 @@ hardware:
   gpu:
     product: nvidia-rtx-pro-6000-blackwell
     count: 1
-    memory_bytes_per_device: 56908316672
+    memory_bytes_per_device: 63350767616
   cpu:
     architecture: amd64
   memory:
@@ -26,6 +26,7 @@ hardware:
 runtime:
   engine: sglang
   compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 56908316672
 
 api:
   routing_model_id: qwen36-35b-a3b
