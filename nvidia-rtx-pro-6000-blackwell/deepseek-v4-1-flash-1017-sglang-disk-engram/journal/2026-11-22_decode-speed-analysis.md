@@ -232,3 +232,21 @@ hardware.gpu.memory_bytes_per_device is 94 GiB (was 95 GiB in the draft), the ca
 for the RTX PRO 6000 Blackwell Server Edition (97,887 MiB total, 1 GiB kept for the driver).
 Measured with nvidia-smi during the dec64 max-decode benchmark: 84,667-84,685 MiB in use per
 GPU (82.7 GiB; engine booking 80.75 GiB, --mem-fraction-static 0.85), so 11 GiB of margin.
+
+## io_uring: not used, on purpose (decision 2026-11-22)
+
+The Engram rows are read with native Linux AIO on O_DIRECT (64 reads in flight), not with
+io_uring, and the platform is not asked to allow io_uring.
+- Docker's default seccomp profile (Docker 29.10 here) is an allow-list that leaves out
+  io_uring_setup, io_uring_enter and io_uring_register. The host allows io_uring
+  (kernel.io_uring_disabled = 0). Using it would need a seccomp exception in the platform's
+  container admission control (platform-alpha #193 refuses SecurityOpt).
+- Docker, containerd and Kubernetes leave io_uring out on purpose: it had several kernel bugs
+  that let code escape a container. An exception widens the kernel surface of every container
+  that uses it.
+- Little speedup is expected: native AIO with O_DIRECT already keeps 64 reads in flight, and
+  the disk does not limit decode here (Engram cache 8 -> 16 GiB cut disk read latency from
+  about 900 to 200 us with no change in decode tok/s). Prefill with long prompts is not measured.
+- So there is no platform ticket. If an io_uring engine (the BRRR draft: vLLM + io_uring) ever
+  looks worth it, measure it first on a test machine without admission control, where Docker
+  accepts security_opt directly. Only a clear gain there would justify asking for the exception.
