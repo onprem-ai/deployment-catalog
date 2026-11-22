@@ -250,3 +250,32 @@ io_uring, and the platform is not asked to allow io_uring.
 - So there is no platform ticket. If an io_uring engine (the BRRR draft: vLLM + io_uring) ever
   looks worth it, measure it first on a test machine without admission control, where Docker
   accepts security_opt directly. Only a clear gain there would justify asking for the exception.
+
+## Own image with warmed kernel caches (2026-11-22 afternoon)
+
+The profile no longer carries code. The adapter, the patched flash_mla_sm120.py, the AIO row
+reader (now compiled at build time), make_view.py and the debug tools are in the image
+onpremai/sglang-dsv41-disk-engram:c4ca651-20261122 (build source: onprem-ai/platform-alpha,
+dev/inference-engine-images/sglang-dsv41-disk-engram; the catalog convention is that a deploy
+profile never carries build sources). The sections above that name container-files/ describe
+the earlier layout; the files are now under /opt/dsv41/ in the image, with their licenses in
+/opt/dsv41/licenses/.
+
+build.sh ran the engine once on the test host with the command of compose.yaml and sent 22
+checked requests (all correct), then committed the kernel caches into the image. Start of the
+profile, request to READY, same host, same weights:
+
+| | upstream image + container-files | own image |
+|---|---|---|
+| request -> READY | 5 min 51 s | 3 min 40 s |
+| loading weights (main + DSpark draft) | 131 s | 134 s |
+| FlashInfer autotune | 76 s + 8 s | 4 s + 3 s |
+| CUDA graph capture (target + draft verify) | 45 s + 16 s | 4.4 s + 4.1 s |
+| engine startup (scheduler_e2e) | 285 s | 163 s |
+| kernel compile on the first request after READY | 18 s | none |
+
+The log says the per-rank FlashInfer autotune caches "disagree" and are tuned again; with the
+compiled kernels in the cache this takes 4 s. After the change: first request correct, 64/64
+unique prompts correct at concurrency 4 and 8, decode unchanged (c = 1: code 148 tok/s, prose
+66 tok/s; c = 8: 258 tok/s in total for the same prompts as before, 245 tok/s with
+container-files).

@@ -1,45 +1,65 @@
-# Upstream SGLang, pinned by digest (lmsysorg/sglang, built 2026-09-10, CUDA 13.0.3;
-# the image behind the lcz.me 4x RTX PRO 6000 benchmark). The tag is descriptive only:
-# the node pulls by the digest.
-# container-files/: the disk-Engram adapter, reviewed copies of
-#   soloptimizer/deepseek-v4.1-flash-4x-rtx-pro-6000@34047e42 (sybil-solutions PR #3):
-#     adapter/engram_backend.py, adapter/sitecustomize.py, adapter/row_store.cpp
-#   ryder777777/deepseek-v4.1-flash-4x-rtx-pro-6000@1b1353f9 (sybil-solutions PR #4):
-#     runtime/flash_mla_sm120.py (SM120 sparse-prefill mask fix for prompts > 64 tokens),
-#     plus DSV41_SM120_PREFILL_BACKEND=dec64 (prefill through the FlashInfer decode
-#     kernel in 64-token slices; see the journal), and debug tools left switched off:
-#     DSV41_SM120_PREFILL_CHECK, DSV41_SM120_PREFILL_MODE_FILE, selftest.py, tcp_forward.py
-# The adapter reads Engram rows with pread / native AIO on O_DIRECT (allowed by Docker's
-# default seccomp profile), keeps a bounded mmap RAM cache of DSV41_CACHE_GIB in total,
-# and never allocates the full tables. No io_uring, no mlock.
+# onpremai/sglang-dsv41-disk-engram, pinned by digest. Build source: onprem-ai/platform-alpha,
+# dev/inference-engine-images/sglang-dsv41-disk-engram (Dockerfile, build.sh). It is upstream
+# SGLang (lmsysorg/sglang@sha256:c4ca6511..., built 2026-09-10, flashinfer 0.6.18) plus:
+#   - the disk-Engram adapter (sybil-solutions, MIT; byte-identical with
+#     soloptimizer/deepseek-v4.1-flash-4x-rtx-pro-6000@34047e42), its AIO row reader compiled
+#   - SGLang's flash_mla_sm120.py with sybil-solutions PR #4 and DSV41_SM120_PREFILL_BACKEND
+#     (dec64: prefill through the FlashInfer decode kernel in 64-token slices; see the journal)
+#   - kernel caches (FlashInfer autotune and JIT, Triton) from a checked GPU warmup with the
+#     command below; with other engine arguments the engine autotunes again at start
+#   - debug tools, off unless switched on: DSV41_SM120_PREFILL_CHECK,
+#     DSV41_SM120_PREFILL_MODE_FILE, /opt/dsv41/bin/selftest.py, tcp_forward.py
+# The image's entrypoint (/opt/dsv41/bin/dsv41-start) builds a view of the checkpoint without
+# the two Engram tables, then runs the command. The adapter reads Engram rows with pread /
+# native AIO on O_DIRECT (allowed by Docker's default seccomp profile), keeps a bounded RAM
+# cache of DSV41_CACHE_GIB in total, and never allocates the full tables. No io_uring, no mlock.
 services:
   inference:
-    image: lmsysorg/sglang:dig-c4ca651192e57e91@sha256:c4ca651192e57e91989b5176c3665148131b9a171e53861dee87f5e57cef25b5
-    entrypoint: [/bin/bash, -c]
+    image: onpremai/sglang-dsv41-disk-engram:c4ca651-20261122@sha256:1c991c1a1cd438f452e8c86d2b7e6e21bf137b0680fab6a732d8366ef2ce59bd
     command:
-      - |-
-        set -euo pipefail
-        A=/opt/dsv41/adapter
-        mkdir -p "$$A"
-        cp /opt/dsv41/src/engram_backend.py /opt/dsv41/src/sitecustomize.py /opt/dsv41/src/row_store.cpp "$$A/"
-        T=/sgl-workspace/sglang/python/sglang/kernels/ops/attention/flash_mla_sm120.py
-        test -f "$$T" || { echo "missing $$T: the image layout differs from the adapter's"; exit 1; }
-        cp /opt/dsv41/src/flash_mla_sm120.py "$$T"
-        python3 /opt/dsv41/src/make_view.py /models/model /opt/model-view
-        g++ -O2 -std=c++17 -shared -fPIC -pthread "$$A/row_store.cpp" -o "$$A/librow_store.so"
-        python3 -m sglang.launch_server \
-          --model-path /opt/model-view \
-          --served-model-name deepseek-v4.1-flash \
-          --trust-remote-code --load-format safetensors \
-          --model-loader-extra-config '{"enable_multithread_load": false}' \
-          --tp 4 --ep-size 4 \
-          --attention-backend dsv4 --moe-runner-backend flashinfer_mxfp4 \
-          --mem-fraction-static 0.85 --chunked-prefill-size 2048 \
-          --context-length 131072 --max-running-requests 8 --cuda-graph-max-bs-decode 8 \
-          --speculative-algorithm DSPARK --speculative-dspark-block-size 5 \
-          --enable-decoder-swa-bounded-replay \
-          --tool-call-parser deepseekv41 --reasoning-parser deepseek-v41 \
-          --host 0.0.0.0 --port 8080 2>&1 | stdbuf -o0 tr '\r' '\n'
+      - python3
+      - -m
+      - sglang.launch_server
+      - --model-path
+      - /opt/model-view
+      - --served-model-name
+      - deepseek-v4.1-flash
+      - --trust-remote-code
+      - --load-format
+      - safetensors
+      - --model-loader-extra-config
+      - '{"enable_multithread_load": false}'
+      - --tp
+      - "4"
+      - --ep-size
+      - "4"
+      - --attention-backend
+      - dsv4
+      - --moe-runner-backend
+      - flashinfer_mxfp4
+      - --mem-fraction-static
+      - "0.85"
+      - --chunked-prefill-size
+      - "2048"
+      - --context-length
+      - "131072"
+      - --max-running-requests
+      - "8"
+      - --cuda-graph-max-bs-decode
+      - "8"
+      - --speculative-algorithm
+      - DSPARK
+      - --speculative-dspark-block-size
+      - "5"
+      - --enable-decoder-swa-bounded-replay
+      - --tool-call-parser
+      - deepseekv41
+      - --reasoning-parser
+      - deepseek-v41
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
     environment:
       PYTHONPATH: "/opt/dsv41/adapter"
       PYTHONUNBUFFERED: "1"
@@ -54,7 +74,6 @@ services:
       PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
     volumes:
       - model:/models/model:ro
-      - ./container-files:/opt/dsv41/src:ro
     expose:
       - "8080"
     healthcheck:
