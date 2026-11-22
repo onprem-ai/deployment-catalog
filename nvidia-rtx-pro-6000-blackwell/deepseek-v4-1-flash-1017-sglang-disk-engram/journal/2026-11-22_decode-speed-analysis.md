@@ -225,3 +225,10 @@ slices of 64 query tokens.
 
 Next: report to flashinfer with the A/B table; when a newer FlashInfer is available in an
 SGLang image, repeat the "FlashInfer warmup" A/B with the debug build (one redeploy).
+
+## GPU booking: 94 GiB per GPU
+
+hardware.gpu.memory_bytes_per_device is 94 GiB (was 95 GiB in the draft), the catalog's target
+for the RTX PRO 6000 Blackwell Server Edition (97,887 MiB total, 1 GiB kept for the driver).
+Measured with nvidia-smi during the dec64 max-decode benchmark: 84,667-84,685 MiB in use per
+GPU (82.7 GiB; engine booking 80.75 GiB, --mem-fraction-static 0.85), so 11 GiB of margin.
