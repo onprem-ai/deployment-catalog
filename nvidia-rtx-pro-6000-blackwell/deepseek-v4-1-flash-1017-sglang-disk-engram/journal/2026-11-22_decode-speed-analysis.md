@@ -279,3 +279,19 @@ compiled kernels in the cache this takes 4 s. After the change: first request co
 unique prompts correct at concurrency 4 and 8, decode unchanged (c = 1: code 148 tok/s, prose
 66 tok/s; c = 8: 258 tok/s in total for the same prompts as before, 245 tok/s with
 container-files).
+
+## GPU memory per GPU (measured)
+
+From the start of this profile from the catalog (2026-11-22 14:43 UTC) and nvidia-smi during the
+max-decode benchmark:
+
+| Part | GiB | Source |
+|---|---|---|
+| Weights (main model 72.51 + DSpark draft 2.05) | 74.56 | `Load weight end ... mem usage` |
+| KV cache, 2,935,552 tokens | 5.12 | free memory 19.35 before, 14.23 after the memory pools |
+| CUDA graphs | 0.27 | `Capture target verify CUDA graph end ... mem usage=0.27 GB` (draft: 0.00) |
+| Runtime overhead | 2.75 | peak minus the three above |
+| Peak | 82.70 | 84,685 MiB in nvidia-smi |
+
+`--kv-cache-dtype fp8_e4m3` is now stated in the command; the dsv4 backend chose it before
+already, so nothing changes in operation.
