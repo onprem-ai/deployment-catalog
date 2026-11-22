@@ -1,0 +1,147 @@
+services:
+  inference:
+    # The image NVIDIA's model card names for RTX PRO 6000 Blackwell
+    # (nvidia/Qwen3.8-Flash-Next-FP4-Local, "Usage"): upstream vLLM cannot read this
+    # checkpoint's NVFP4 scale format yet. Pinned by digest.
+    image: onpremai/vllm-qwen38-flash-next:20261121-2gpu-v2@sha256:7bc01e2c7a78263b374982f32c926117d183d7cbe0cace3640d5663b482f139a
+    # The command is NVIDIA's for RTX PRO 6000, unchanged, with these changes:
+    # - --tensor-parallel-size 2 (the community TP2 profile changes only this) and
+    #   --max-num-seqs 64, since two GPUs hold about six times the KV cache, and
+    #   --max-cudagraph-capture-size 256 (64 sequences x 4 tokens per MTP step), so
+    #   every batch up to 64 sequences runs in CUDA graphs;
+    # - the model path and name, and the API port 8080;
+    # - --max-model-len 1048576 and --hf-overrides, which switch the rope from the
+    #   checkpoint's native type to YaRN, factor 4 over the trained 262,144 positions
+    #   (same theta and M-RoPE sections), so one request may hold 1,048,576 tokens;
+    # - --gpu-memory-utilization is the deploy's share of the engine booking.
+    # FP8 KV cache (--kv-cache-dtype fp8) and MTP with 3 draft tokens are NVIDIA's.
+    # VLLM_PLE_CPU_OFFLOAD=1 and VLLM_PLE_TABLE_MEMORY=shared: the PLE n-gram table (26.8 GiB, split across the two
+    # tensor-parallel workers: 13.4 GiB each) lives in shared host memory in /dev/shm, not in GPU memory. That frees
+    # 13.4 GiB per GPU for the KV cache (6.14 million tokens instead of 4.39 million) and costs about 42 GiB of host RAM
+    # that cannot be reclaimed (journal/2026-11-22-ple-in-host-ram.md). /dev/shm must hold the table: shm_size 32gb.
+    # The profile with the table in GPU memory is qwen38-flash-next-nvidia-fp4-1m-tp2.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        set -euo pipefail
+        exec vllm serve /models/model \
+          --served-model-name qwen3.8-flash-next \
+          --host 0.0.0.0 --port 8080 \
+          --hf-overrides '{"text_config": {"rope_parameters": {"mrope_interleaved": true, "mrope_section": [11, 11, 10], "partial_rotary_factor": 0.25, "rope_theta": 10000000, "rope_type": "yarn", "factor": 4.0, "original_max_position_embeddings": 262144}, "max_position_embeddings": 1048576}}' \
+          --async-scheduling \
+          --block-size 64 \
+          --compilation-config '{"cudagraph_mode":"FULL_AND_PIECEWISE","custom_ops":["all"]}' \
+          --decode-context-parallel-size 1 \
+          --dtype bfloat16 \
+          --enable-auto-tool-choice \
+          --enable-chunked-prefill \
+          --no-enable-flashinfer-autotune \
+          --enable-prefix-caching \
+          --enable-prompt-tokens-details \
+          --gdn-decode-kernel b12x \
+          --gpu-memory-utilization 0.95 \
+          --kv-cache-dtype fp8 \
+          --no-language-model-only \
+          --linear-backend b12x \
+          --load-format instanttensor \
+          --mamba-cache-mode align \
+          --mamba-ssm-cache-dtype auto \
+          --max-cudagraph-capture-size 256 \
+          --max-model-len 1048576 \
+          --max-num-batched-tokens 6019 \
+          --max-num-seqs 64 \
+          --mm-encoder-tp-mode data \
+          --mm-processor-cache-gb 0.0 \
+          --moe-backend b12x \
+          --pipeline-parallel-size 1 \
+          --quantization modelopt_mixed \
+          --reasoning-parser qwen3 \
+          --speculative-config '{"method":"mtp","draft_sample_method":"probabilistic","rejection_sample_method":"standard","moe_backend":"b12x","num_speculative_tokens":3}' \
+          --tensor-parallel-size 2 \
+          --tool-call-parser qwen3_xml
+    # NVIDIA's environment for RTX PRO 6000, unchanged.
+    environment:
+      B12X_DENSE_SPLITK_TURBO: "1"
+      B12X_DYNAMIC_DETERMINISTIC_OUTPUT: "0"
+      B12X_DYNAMIC_DIRECT_EXPERT_SCALES: "1"
+      B12X_DYNAMIC_SKIP_SPLIT_BARRIER_RESET: "1"
+      B12X_DYNAMIC_SPLIT_COMPUTE_MAC: "224"
+      B12X_DYNAMIC_SPLIT_FAST_PREPARE: "1"
+      B12X_DYNAMIC_SPLIT_LOW_SMEM: "1"
+      B12X_DYNAMIC_SPLIT_ROUTE_COMPUTE: "1"
+      B12X_DYNAMIC_WORK_SOURCE: "persistent_grid"
+      B12X_W4A16_A4_PREFILL: "1"
+      B12X_DISK_BACKEND: "io_uring"
+      B12X_MHC_PDL: "1"
+      B12X_PCIE_ONESHOT_BLOCK_LIMIT: "4"
+      B12X_PCIE_ONESHOT_PDL: "1"
+      B12X_PCIE_ONESHOT_THREADS: "512"
+      CUDA_BINARY_LOADER_THREAD_COUNT: "8"
+      CUDA_DEVICE_ORDER: "PCI_BUS_ID"
+      CUDA_MODULE_LOADING: "LAZY"
+      CUTE_DSL_ARCH: "sm_120a"
+      INSTANTTENSOR_BACKEND: "BUFFERED"
+      NCCL_BUFFSIZE: "2097152"
+      NCCL_CUMEM_ENABLE: "0"
+      NCCL_IB_DISABLE: "1"
+      NCCL_MAX_NCHANNELS: "16"
+      NCCL_MIN_NCHANNELS: "16"
+      NCCL_NET_PLUGIN: "spcx"
+      NCCL_P2P_LEVEL: "SYS"
+      NCCL_PROTO: "LL,LL128,Simple"
+      OMP_NUM_THREADS: "2"
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+      SAFETENSORS_FAST_GPU: "1"
+      TORCHINDUCTOR_LOOP_ORDERING_AFTER_FUSION: "0"
+      TORCH_CUDA_ARCH_LIST: "12.0a"
+      VLLM_B12X_DENSE_ACTIVATION_MODE: "auto"
+      VLLM_B12X_MOE_FP4_FORCE_A16: "1"
+      VLLM_CAUSAL_CONV1D_UPDATE_HOIST: "1"
+      VLLM_COMPUTE_NANS_IN_LOGITS: "0"
+      VLLM_DISABLED_KERNELS: "MarlinFP8ScaledMMLinearKernel"
+      VLLM_ENABLE_PCIE_ALLREDUCE: "1"
+      VLLM_GDN_SPEC_DECODE_METADATA_FASTPATH: "1"
+      VLLM_LM_HEAD_A16: "1"
+      VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS: "0"
+      VLLM_MTP_NVFP4_LM_HEAD: "1"
+      VLLM_MXFP8_LM_HEAD: "0"
+      VLLM_PCIE_ALLREDUCE_BACKEND: "b12x"
+      VLLM_PLE_CPU_OFFLOAD: "1"
+      VLLM_PLE_TABLE_MEMORY: "shared"
+      VLLM_QWEN3_8_FLASH_NEXT_HC_TP: "0"
+      VLLM_QWEN3_8_FLASH_NEXT_MTP_COMPACT: "1"
+      VLLM_QWEN3_8_FLASH_NEXT_OVERLAP: "1"
+      VLLM_SSM_CONV_STATE_LAYOUT: "DS"
+      VLLM_USE_FASTOKENS: "1"
+      VLLM_USE_V2_MODEL_RUNNER: "1"
+      VLLM_WORKER_MULTIPROC_METHOD: "spawn"
+      TORCH_ALLOW_TF32_CUBLAS_OVERRIDE: "1"
+      TORCH_NCCL_USE_COMM_NONBLOCKING: "0"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 120
+      start_period: 1800s
+    shm_size: 32gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "4"
+          memory: 46G
+          devices:
+            - driver: nvidia
+              count: 2
+              capabilities: [gpu]
+        limits:
+          cpus: "16"
+          memory: 52G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
