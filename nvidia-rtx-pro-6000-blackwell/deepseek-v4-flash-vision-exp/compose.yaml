@@ -1,0 +1,71 @@
+services:
+  inference:
+    # vLLM's image for this checkpoint (vllm-project/vllm#54566): the release wheels of
+    # its time routed it to the text-only class and failed on the vision tensors. The
+    # multi-arch manifest is pinned so the image cannot change upstream.
+    image: vllm/vllm-openai:nightly-153dc046462c4724a9a4eb393cadd60169ed943c@sha256:cfa6d27bfe586d084ac00bc1984788df4445bf4946cb482c911c999f51ea9f89
+    # 1M context: DeepSeek V4 keeps a constant per-request state (sliding-window cache, compressor
+    # rings) per possible request, but it is small: --max-num-seqs 4 -> 8 cost 0.8 % of the KV pool
+    # (1,626,770 -> 1,613,540 tokens). --max-num-batched-tokens 4096 halves the activation reserve
+    # (8192: 1.81 GiB, which left 8.98 GiB of KV against the 10.06 GiB one 1M request needs).
+    # --max-num-seqs 6 and CUDA graphs up to 24 tokens: every decode batch (6 requests x (1 + 3
+    # DSpark tokens)) runs in a full CUDA graph. vLLM captures 1, 2, 4 and multiples of 8 tokens,
+    # and gives FlashInfer's SM120 sparse-MLA kernel a fixed 128 MiB workspace that capture cannot
+    # grow (TP2: about 4.1 MiB per decode token; 32 tokens fail with 'attention workspace
+    # insufficient for resolved plan'). With 8 requests, batches of 28 and 32 tokens ran without a
+    # full graph: 7-8 parallel requests about 20 tok/s each, against 65 tok/s at 6.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        set -euo pipefail
+        exec vllm serve /models/model \
+          --served-model-name deepseek-v4-flash-vision \
+          --host 0.0.0.0 --port 8080 \
+          --tensor-parallel-size 2 \
+          --enable-expert-parallel \
+          --disable-custom-all-reduce \
+          --gpu-memory-utilization 0.98 \
+          --kv-cache-dtype fp8 \
+          --block-size 256 \
+          --max-model-len 1048576 \
+          --max-num-seqs 6 \
+          --max-cudagraph-capture-size 24 \
+          --max-num-batched-tokens 4096 \
+          --enable-prefix-caching \
+          --tokenizer-mode deepseek_v4 \
+          --tool-call-parser deepseek_v4 \
+          --enable-auto-tool-choice \
+          --reasoning-parser deepseek_v4 \
+          --reasoning-config '{"reasoning_parser":"deepseek_v4","reasoning_start_str":"","reasoning_end_str":""}' \
+          --speculative-config '{"method":"dspark","model":"/models/model","num_speculative_tokens":3,"draft_sample_method":"probabilistic","enable_adaptive_verification":false}'
+    environment:
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+      VLLM_ENGINE_READY_TIMEOUT_S: "3600"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 120
+      start_period: 900s
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 2
+              capabilities: [gpu]
+        limits:
+          cpus: "8"
+          memory: 20G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main

@@ -5,14 +5,14 @@ from disk?
 
 Short answer: the disk is a real part of it, but not the whole gap. The same stack with the
 tables in RAM is reported at about 2x our speed; most of that gap is probably the Triton
-attention fallback, the small Engram cache and the SAS RAID latency under a deep queue.
+attention fallback, the small Engram cache and the RAID latency under a deep queue.
 
 ## Setup measured
 - Profile as deployed 2026-11-22 01:2x Z: SGLang image c4ca6511, sybil adapter (native AIO,
   64 reads in flight per store), DSV41_CACHE_GIB=8, SGLANG_SM120_FLASHMLA_BACKEND=triton,
   TP4/EP4, DSpark block 5, context 131072, max 8 running requests.
 - Host: 4x RTX PRO 6000 Server Edition, 61 GB RAM, 10 GB swap. Weights on /dev/sda, an
-  Adaptec SmartRAID 3204-8i logical volume of SSDs, ext4. Not NVMe.
+  Adaptec SmartRAID 3204-8i logical volume of NVMe SSDs, ext4.
 - Disk baseline (Python O_DIRECT, 4 KiB random reads, 32 GiB file): QD1 p50 70 us, p99 87 us,
   13.6k IOPS; QD8 p50 78 us, 98.6k IOPS; sequential write 3.69 GB/s.
 
@@ -55,7 +55,7 @@ Ad-hoc gateway requests: prose 38-50 tok/s, code 99 tok/s (DSpark accepts more o
 ## Probable causes of our gap to about 112 tok/s, in order of likely size
 1. Triton FlashMLA fallback. Every faster report uses the FlashInfer SM120 path. Here it
    still corrupts prompts > 64 tokens although PR #4's mask is in flash_mla_sm120.py.
-2. Engram reads on the critical path: 8 GiB cache (others 64 GiB), SAS RAID latency rising to
+2. Engram reads on the critical path: 8 GiB cache (others 64 GiB), RAID latency rising to
    about 0.9 ms under 256 queued reads.
 3. Tensor-parallel all-reduce over PCIe: SGLang disables its custom all-reduce for more than
    two PCIe-only GPUs, so every layer uses NCCL.
