@@ -7,7 +7,7 @@ display:
   short_description: >-
     DeepSeek V4.1 Flash 1017 on upstream SGLang (pinned September build) with a community
     adapter that reads the 183 GiB Engram tables from local disk with O_DIRECT and native AIO
-    through a bounded RAM cache. 552B backbone, 16B active per output token, FP4 experts and
+    through a bounded RAM cache. 748B parameters, 16B active per output token, FP4 experts and
     FP8 dense weights, DSpark speculative decoding. Tensor-parallel across four RTX PRO 6000
     Blackwell GPUs; fits hosts with little RAM.
   maturity: experimental
@@ -49,7 +49,7 @@ api:
 
 model:
   released_at: '2026-10-17'
-  parameter_count: 552000000000
+  parameter_count: 748000000000
   active_parameter_count: 16000000000
   weights_disk_size_bytes: 510310551059
   license:
