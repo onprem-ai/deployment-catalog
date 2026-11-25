@@ -5,10 +5,11 @@ display:
   subtitle: DSpark
   logo: assets/logo.svg
   short_description: >-
-    Abliterated (decensored) rebuild of DeepSeek V4 Flash 0731 with DSpark speculative decoding.
-    284B total / 13B active params, native FP4 experts + FP8 block elsewhere, reasoning and tool
-    calling. Unsensored -- use responsibly. Runs tensor-parallel across both RTX 6000 Blackwell
-    GPUs. EXPERIMENTAL on this node.
+    Abliterated (refusal-removed) DeepSeek V4 Flash 0731 with DSpark speculative decoding:
+    DeepSeek's own weights with the attention output projection of every layer edited.
+    284B total / 13B active parameters, native FP4 experts and FP8 blocks elsewhere, reasoning
+    and tool calling, tensor-parallel across two RTX PRO 6000 Blackwell GPUs. Uncensored: it
+    answers requests the original model refuses; deploy it only where that is intended.
   maturity: experimental
   author: onprem-ai
 
@@ -47,7 +48,7 @@ model:
   released_at: '2026-08-01'
   parameter_count: 284000000000
   active_parameter_count: 13000000000
-  weights_disk_size_bytes: 163208757248
+  weights_disk_size_bytes: 168442117640
   license:
     expression: MIT
     name: MIT License
@@ -72,7 +73,6 @@ model:
       files:
       - LICENSE
       - config.json
-      - encoding/encoding_dsv4.py
       - generation_config.json
       - model-00001-of-00048.safetensors
       - model-00002-of-00048.safetensors

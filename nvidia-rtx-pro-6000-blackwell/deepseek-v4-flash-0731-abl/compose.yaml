@@ -8,14 +8,12 @@ services:
           --model /models/model \
           --served-model-name deepseek-v4-flash \
           --host 0.0.0.0 --port 8080 \
-          --trust-remote-code \
           --kv-cache-dtype fp8 \
           --block-size 256 \
           --tensor-parallel-size 2 \
           --disable-custom-all-reduce \
           --gpu-memory-utilization 0.98 \
-          --max-num-seqs 128 \
-          --max-model-len 262144 --max-num-seqs 8 --kv-cache-dtype fp8 \
+          --max-model-len 262144 --max-num-seqs 8 \
           --max-num-batched-tokens 4096 \
           --max-cudagraph-capture-size 48 \
           --speculative-config '{"method":"dspark","num_speculative_tokens":5,"draft_sample_method":"probabilistic"}' \
