@@ -25,10 +25,13 @@ made by an individual uploader, not by DeepSeek. What is checked, and how:
   `wo_b` weight (F8_E4M3, 4096 x 8192) and its block scale (F8_E8M0, 32 x 64) of the 43 layers and the 3 MTP blocks. The weight
   index maps exactly those 92 names to the overlay and changes nothing else (72,317 tensors, 72,225 untouched). A safetensors
   file carries tensors, not code.
-- **The edit is a directional ablation, nothing else.** Read from the official and the overlay tensors of layers 0, 21 and 42:
-  89 to 95 % of the change is one singular direction (the second is 16 to 23 times smaller), and that direction has the form
-  of the projection `W' = W - lambda * r (r^T W)` (cosine 0.995 to 0.999 with `W^T r`); the measured lambda is 2.43 to 2.47
-  (baked at 2.5), the rest is FP8 re-quantization noise. The other 43 matrices were not audited one by one.
+- **The edit is a directional ablation, nothing else.** Read from the official and the overlay tensors of **all 46 edited
+  matrices** (43 layers and 3 MTP blocks): 84 to 94 % of the change is one singular direction (mean 90 %; the second is 13 to 23
+  times smaller), and that direction has the form of the projection `W' = W - lambda * r (r^T W)` (cosine 0.987 to 0.999 with
+  `W^T r`, mean 0.996); the measured lambda is 2.34 to 2.47 (mean 2.43; baked at 2.5, the rounding keeps most of it), the rest is FP8
+  re-quantization noise. The directions of adjacent layers are almost unrelated (mean cosine 0.08), which fits one direction
+  measured per layer on that layer's own attention output; some pairs of matrices share one direction exactly (cosine 1.000), most
+  likely the MTP blocks and the backbone layers they stand for (not checked which).
 - **Reproducible.** The uploader publishes the pipeline (capture of the refusal directions, lambda sweep, bake, validation) and its
   own report in the same repository (`scripts/`, `docs/`). We have not rerun it.
 

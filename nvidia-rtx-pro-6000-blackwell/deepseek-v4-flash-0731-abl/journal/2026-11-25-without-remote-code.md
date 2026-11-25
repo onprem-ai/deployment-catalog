@@ -24,12 +24,12 @@ tokenizer mode and parsers without the flag. The card was started without it and
 ## What was verified
 
 See the README ("Weights"): 72 of 74 files byte-identical to the official repository; the stored copy equal to the uploader's
-repository by SHA-256; the overlay holds only `wo_b` weights and scales of the 43 layers and 3 MTP blocks; three layers audited as
-rank-1 directional ablation (lambda 2.43 to 2.47). Validation against the official model on the same harness: README ("Validation").
+repository by SHA-256; the overlay holds only `wo_b` weights and scales of the 43 layers and 3 MTP blocks; all 46 matrices audited
+as rank-1 directional ablation (rank-1 share 0.84 to 0.94, form cosine 0.987 to 0.999, lambda 2.34 to 2.47). Validation against the official model on the same harness: README ("Validation").
 
 ## Not done
 
-- Not every one of the 46 edited matrices was audited, and the uploader's pipeline was not rerun here.
+- The uploader's pipeline was not rerun here (the audit of all 46 matrices was done on the published tensors).
 - Thinking modes were not measured by us.
 - The benchmark file of 2026-11-14 predates these compose changes (its settings are the ones in effect, but its compose hash
   differs); it was not rerun.
