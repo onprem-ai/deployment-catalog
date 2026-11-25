@@ -34,3 +34,12 @@ rank-1 directional ablation (lambda 2.43 to 2.47). Validation against the offici
 - The benchmark file of 2026-11-14 predates these compose changes (its settings are the ones in effect, but its compose hash
   differs); it was not rerun.
 - The hardware booking (95 GiB) is above what a GPU of this product shows as free (94.97 GiB); see the separate commit.
+
+## Hardware booking: 95 GiB -> 94.75 GiB (separate commit)
+
+The measured parts of the card add up to a peak of 94.43 GiB per GPU (weights 79.36, CUDA graphs 0.14, KV cache 10.55, overhead 4.38).
+An idle RTX PRO 6000 Blackwell Server Edition shows 94.97 GiB free (97,887 MiB total, 636 MiB reserved by the driver), so the
+previous booking of 95 GiB was 28 MiB more than a GPU can show as free and the placement proposal marked every GPU as not eligible
+(platform-alpha #384; the deploy itself is never blocked). 94.75 GiB is above the peak by 0.32 GiB and below the free memory by 0.22 GiB.
+It is above the catalog's target of the product's total minus 1 GiB (94.59 GiB): the peak itself is above the target, so this card
+keeps no margin for a driver that reserves more. Drop this commit if the booking should stay at 95 GiB.
