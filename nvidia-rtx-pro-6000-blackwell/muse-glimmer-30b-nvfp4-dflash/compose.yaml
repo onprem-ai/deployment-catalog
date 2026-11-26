@@ -41,7 +41,6 @@ services:
       timeout: 5s
       retries: 90
       start_period: 30s
-    shm_size: 8gb
     deploy:
       resources:
         reservations:

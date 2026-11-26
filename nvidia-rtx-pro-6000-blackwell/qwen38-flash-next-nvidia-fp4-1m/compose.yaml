@@ -118,7 +118,6 @@ services:
       timeout: 5s
       retries: 120
       start_period: 1800s
-    shm_size: 32gb
     # Host RAM per replica, measured (journal/2026-11-21-host-ram.md): 31.6 GiB resident at rest and 33.9 GiB at the
     # peak while the weights load. 26.8 GiB of it is the PLE table (VLLM_PLE_CPU_OFFLOAD=1), which the engine keeps in
     # CUDA-mapped host memory; the table is not charged to the container's cgroup on the measured host, so the limit
