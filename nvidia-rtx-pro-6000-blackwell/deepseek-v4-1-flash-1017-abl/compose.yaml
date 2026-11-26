@@ -1,0 +1,100 @@
+# DeepSeek V4.1 Flash 1017 abliterated: the official deepseek-v4-1-flash-1017-sglang-disk-engram card
+# with the refusal direction removed from the attention output projections (wo_b of the 40 layers
+# and the 3 DSpark drafter stages). The 86 edited tensors (W - lambda r r^T W, FP8 e4m3 with the
+# checkpoint's own E8M0 block scales, lambda 2.125, effective 2.0) are the OnPrem AI model storage
+# entry onprem-ai--DeepSeek-V4.1-Flash-1017-abl, mounted at /models/overlay; container-files/abl41.py,
+# chained into the image's sitecustomize, replaces exactly those tensors by name while SGLang loads
+# DeepSeek's checkpoint (/models/model, the official card's files and cache). Everything else is the
+# official card's.
+services:
+  inference:
+    image: onpremai/sglang-dsv41-disk-engram:c4ca651-20261122@sha256:1c991c1a1cd438f452e8c86d2b7e6e21bf137b0680fab6a732d8366ef2ce59bd
+    command:
+      - python3
+      - -m
+      - sglang.launch_server
+      - --model-path
+      - /opt/model-view
+      - --served-model-name
+      - deepseek-v4.1-flash-abliterated
+      - --trust-remote-code
+      - --load-format
+      - safetensors
+      - --model-loader-extra-config
+      - '{"enable_multithread_load": false}'
+      - --tp
+      - "4"
+      - --ep-size
+      - "4"
+      - --attention-backend
+      - dsv4
+      - --kv-cache-dtype
+      - fp8_e4m3
+      - --moe-runner-backend
+      - flashinfer_mxfp4
+      - --mem-fraction-static
+      - "0.85"
+      - --chunked-prefill-size
+      - "2048"
+      - --context-length
+      - "131072"
+      - --max-running-requests
+      - "8"
+      - --cuda-graph-max-bs-decode
+      - "8"
+      - --speculative-algorithm
+      - DSPARK
+      - --speculative-dspark-block-size
+      - "5"
+      - --enable-decoder-swa-bounded-replay
+      - --tool-call-parser
+      - deepseekv41
+      - --reasoning-parser
+      - deepseek-v41
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+    environment:
+      PYTHONPATH: "/opt/profile-files:/opt/dsv41/adapter"
+      ABL_OVERLAY: "/models/overlay/abliterated-wo_b.safetensors"
+      PYTHONUNBUFFERED: "1"
+      TQDM_DISABLE: "1"
+      DSV41_SM120_PREFILL_BACKEND: "dec64"
+      DSV41_SOURCE: "/models/model"
+      OFFLOAD_MODE: "nvme"
+      DSV41_CACHE_GIB: "8"
+      DSV41_ENGRAM_IO_DEPTH: "64"
+      NCCL_IB_DISABLE: "1"
+      NCCL_P2P_LEVEL: "SYS"
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+    volumes:
+      - model:/models/model:ro
+      - overlay:/models/overlay:ro
+      - ./container-files:/opt/profile-files:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '4'
+          memory: 16G
+          devices:
+            - driver: nvidia
+              count: 4
+              capabilities: [gpu]
+        limits:
+          cpus: '24'
+          memory: 40G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
+  overlay:
+    x-ai-deploy:
+      weights: overlay
