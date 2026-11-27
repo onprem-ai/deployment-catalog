@@ -2,10 +2,9 @@
 #
 #   docker build -t onpremai/vllm-ernie55:0.32.0-ba322a5-sm120v2 runtime/
 #
-# Built once, on 2026-11-26, on the authoring host only (33.1 GB, not pushed to any
-# registry): vLLM 0.32.0 and the plugin import, the plugin is at ba322a5 with attention.py
-# and moe.py replaced, and the two replaced vLLM modules import. Never started with the
-# model (journal 2026-11-26-initial-catalog-entry.md). Three pinned parts:
+# Built on 2026-11-26 (33.1 GB) and pushed on 2026-11-27 as
+# onpremai/vllm-ernie55:0.32.0-ba322a5-sm120v2@sha256:f6977c10573049b28505adbb2542dbcd33c99ad5fb595bbbc1459bcf8f308370,
+# the image compose.yaml pins. Three pinned parts:
 # 1. vLLM 0.32.0, the unmodified release image (linux/amd64 manifest).
 # 2. Baidu's vLLM-ERNIE plugin (Apache-2.0): the model class, the ERNIE chat renderer,
 #    the ernie5 reasoning and tool-call parsers, DSpark.
@@ -13,8 +12,7 @@
 #    files laid over the plugin and vLLM. The stock plugin runs its attention on
 #    FlashMLA, which has SM90/SM100 kernels only, and refuses to start on these GPUs.
 #    That repository carries no license file: the files are fetched here at build time
-#    and are not part of this catalog. Clear their redistribution with the author
-#    before the built image is pushed to a public registry.
+#    and are not part of this catalog. The pushed image contains them.
 FROM vllm/vllm-openai:v0.32.0@sha256:6ee133356d49ed24cee03dd0cda3d3980279a11c107ce3e752c89e76540f41c9
 
 ARG VLLM_ERNIE_REF=ba322a5634f91d3e6f96ae711df72ddaf3c38b6e

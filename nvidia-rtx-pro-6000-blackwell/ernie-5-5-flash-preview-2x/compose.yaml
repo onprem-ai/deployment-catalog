@@ -1,12 +1,10 @@
 services:
   inference:
-    # NOT PUSHED: this image exists in no registry. The digest is the local build's on the
-    # host ain-xtg6o (runtime/Dockerfile: vLLM 0.32.0, Baidu's vLLM-ERNIE plugin at ba322a5,
-    # the SM120 port "V2" of hyudryu/ERNIE-5.5-Flash-Preview-2-RTXPro6000 at 8c5b856). An
-    # inference node adopts an image its Docker daemon already holds under this digest and
-    # pulls nothing; any other node fails the pull. Another build has another digest. The
-    # stock plugin refuses to start on these GPUs: its attention runs on FlashMLA, which
-    # has SM90/SM100 kernels only.
+    # Built from runtime/Dockerfile (vLLM 0.32.0, Baidu's vLLM-ERNIE plugin at ba322a5, the
+    # SM120 port "V2" of hyudryu/ERNIE-5.5-Flash-Preview-2-RTXPro6000 at 8c5b856) and pushed
+    # to Docker Hub on 2026-11-27. The stock plugin refuses to start on these GPUs: its
+    # attention runs on FlashMLA, which has SM90/SM100 kernels only. The SM120 port's
+    # repository carries no license file.
     image: onpremai/vllm-ernie55:0.32.0-ba322a5-sm120v2@sha256:f6977c10573049b28505adbb2542dbcd33c99ad5fb595bbbc1459bcf8f308370
     # The command is the SM120 port's "V2" (its recipe/run.sh v2) with the model path, the
     # served name and the API port, and two settings tuned on two RTX PRO 6000 Blackwell

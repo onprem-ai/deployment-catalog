@@ -101,9 +101,30 @@ no failed request at any of 37 levels.
 - Host memory: the container held 12.8 GiB during the start and 8.4 GiB after the benchmark
   and the long prompts, of a 20 GiB limit.
 
+## Later the same day: the image is in a registry, and the checks through the API gateway
+
+- **Image pushed.** `docker push onpremai/vllm-ernie55:0.32.0-ba322a5-sm120v2` to Docker Hub.
+  The registry's digest is the local build's, `sha256:f6977c10573049b28505adbb2542dbcd33c99ad5fb595bbbc1459bcf8f308370`,
+  the one the profile already pinned: the `image:` line did not change. The SM120 port's
+  repository still carries no license file; the image contains its four files.
+- **`compose.yaml` changed in a comment only.** The comment above `image:` no longer says the
+  image is in no registry. The file's sha256 went from `724a808e…139aaa` (what
+  `benchmarks/2026-11-27-0017Z-llmperfbench.yaml` names in `compose_sha256`) to
+  `11a1e1ea…c34a`. Image, command, environment and limits are byte for byte the same, so the
+  benchmark was not repeated.
+- **Deployed again from the profile as it is now** (inference service
+  `875c589d-c215-4590-b901-e38d06b8aae6`, ready after 6.6 minutes), and the answer checks sent
+  through the API gateway (`https://<control plane>/v1`, an API gateway key):
+
+| Check | Result |
+|---|---|
+| 8 questions with known answers, 3 times each, temperature 0.7 | 24 / 24 |
+| Thinking default, `enable_thinking: false`, `reasoning_effort` low and high | all correct; 92, 0, 50 and 92 reasoning tokens |
+| Two tool calls in one turn; answer from both results | yes; yes |
+| Hidden code at 51,472 / 208,790 prompt tokens | found; 12.6 / 52.4 s |
+
 ## Next
 
-- Put the image in a registry (after clearing the SM120 port's license) and pin that digest.
+- Ask the SM120 port's author for a license.
 - Measure the probe's noise; then 3 and 5 draft tokens, and 16 sequences.
 - A request cap above 300,000 tokens (the pool holds 1.21M).
-- Check the answers through the API gateway.

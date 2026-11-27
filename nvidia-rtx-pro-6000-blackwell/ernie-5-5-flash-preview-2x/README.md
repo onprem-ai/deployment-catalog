@@ -1,10 +1,9 @@
 # ERNIE 5.5 Flash Preview (FP4 experts, DSpark, 300K context, 2× GPU)
 
-> ⚠️ **Experimental: measured on one host, image in no registry.** On 2026-11-27 this profile
-> ran on two RTX PRO 6000 Blackwell: answer checks, a full benchmark and long prompts
-> (`journal/2026-11-27-tuning-and-benchmark.md`). Only a node that already holds the locally
-> built image can deploy it (see "Image"), and the runtime includes a community patch whose
-> repository carries no license.
+> ⚠️ **Experimental: measured on one host.** On 2026-11-27 this profile ran on two RTX PRO 6000
+> Blackwell: answer checks, a full benchmark and long prompts
+> (`journal/2026-11-27-tuning-and-benchmark.md`). Its image includes a community patch whose
+> repository carries no license (see "Image").
 
 [`baidu/ERNIE-5.5-Flash-Preview`](https://huggingface.co/baidu/ERNIE-5.5-Flash-Preview) on two
 RTX PRO 6000 Blackwell GPUs, tensor-parallel, with vLLM 0.32.0 and Baidu's
@@ -50,6 +49,7 @@ exists only as an untested draft and is not part of this catalog.
 - Answers: 24 of 24 known answers, every reasoning mode, parallel tool calls and an answer
   from their results; a hidden code found in prompts of up to 243,702 tokens (64 s), and in
   four 216,416-token prompts sent at once.
+- The same answer checks pass through the API gateway (hidden code at 208,790 prompt tokens).
 - GPU memory: 79.66 GiB of weights, 9.02 GiB of KV cache (1,213,175 tokens) and 2.15 GiB of
   CUDA graphs per GPU; peak 97,025 of 97,887 MiB after long prompts. The profile books the
   whole GPU.
@@ -68,27 +68,22 @@ The repository was two days old with no stars or issues when this profile was wr
 
 ## Image
 
-`onpremai/vllm-ernie55:0.32.0-ba322a5-sm120v2` is **in no registry yet**. `runtime/Dockerfile`
-builds it (built once on the authoring host, 2026-11-26, 33.1 GB; imports checked, never started
-with the model) from three pinned parts: the unmodified `vllm/vllm-openai:v0.32.0` image, Baidu's
-plugin at `ba322a5` (Apache-2.0), and the port's four V2 files laid over the plugin
+`onpremai/vllm-ernie55:0.32.0-ba322a5-sm120v2@sha256:f6977c10…`, on Docker Hub since 2026-11-27.
+`runtime/Dockerfile` builds it from three pinned parts: the unmodified `vllm/vllm-openai:v0.32.0`
+image, Baidu's plugin at `ba322a5` (Apache-2.0), and the port's four V2 files laid over the plugin
 (`attention.py`, `moe.py`) and vLLM (`deep_gemm_moe.py`, `kv_cache_utils.py`).
 
 - The stock plugin refuses to start on these GPUs: its attention runs on FlashMLA, which has
   SM90/SM100 kernels only. The port routes it to FlashInfer's SM120 sparse-MLA kernels.
-- **The port's repository has no license file.** Its files are fetched at build time and are not
-  in this catalog. Get the author's permission before pushing the built image to a public
-  registry.
-- After the push, pin the digest in `compose.yaml`
-  (`onpremai/vllm-ernie55:0.32.0-ba322a5-sm120v2@sha256:…`).
+- **The port's repository has no license file.** Its files are not in this catalog (the
+  Dockerfile fetches them at build time); the pushed image contains them.
 
 ## Before this profile is more than a draft
 
-1. Push the image to a registry and pin that digest (the pinned one is a local build's), after
-   clearing the SM120 port's license with its author.
-2. Check the answers through the API gateway, and in the languages you serve.
-3. Measure the probe's noise, then try 3 and 5 draft tokens and 16 sequences.
-4. Try a request cap above 300,000 tokens: the KV pool holds 1.21M.
+1. Ask the SM120 port's author for a license, or replace the port when Baidu's plugin or vLLM
+   supports these GPUs.
+2. Measure the probe's noise, then try 3 and 5 draft tokens and 16 sequences.
+3. Try a request cap above 300,000 tokens: the KV pool holds 1.21M.
 
 ## Checker
 

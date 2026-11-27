@@ -9,8 +9,7 @@ display:
     FP8 with MXFP4 routed experts as shipped, DSpark speculative decoding, reasoning with
     effort levels, tool calling. Tensor-parallel across two RTX PRO 6000 Blackwell GPUs with
     300,000 tokens per request (KV pool 1.2M tokens, 12 requests at once), on a community SM120
-    port of Baidu's vLLM plugin. Measured on two GPUs (2026-11-27); its image is in no registry:
-    see README.md.
+    port of Baidu's vLLM plugin. Measured on two GPUs (2026-11-27).
   maturity: experimental
   author: onprem-ai
 
