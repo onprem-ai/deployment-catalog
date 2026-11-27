@@ -35,6 +35,10 @@ services:
       - "4"
       - --attention-backend
       - dsv4
+      # The dsv4 backend chooses fp8_e4m3 by itself (log: "Setting KV cache dtype to fp8_e4m3");
+      # stated here so the profile says it.
+      - --kv-cache-dtype
+      - fp8_e4m3
       - --moe-runner-backend
       - flashinfer_mxfp4
       - --mem-fraction-static
