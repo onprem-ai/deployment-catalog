@@ -2,14 +2,14 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.js
 
 display:
   name: ERNIE 5.5 Flash Preview
-  subtitle: Experimental · FP4 experts · DSpark · 300K context · 2× GPU
+  subtitle: FP4 experts · DSpark · 2× GPU
   logo: assets/logo.png
   short_description: >-
     Baidu's 280B-total / 14B-active text MoE for agentic coding and knowledge work: blockwise
     FP8 with MXFP4 routed experts as shipped, DSpark speculative decoding, reasoning with
     effort levels, tool calling. Tensor-parallel across two RTX PRO 6000 Blackwell GPUs with
     300,000 tokens per request (KV pool 1.2M tokens, 12 requests at once), on a community SM120
-    port of Baidu's vLLM plugin. Measured on two GPUs (2026-11-27).
+    port of Baidu's vLLM plugin.
   maturity: experimental
   author: onprem-ai
 
