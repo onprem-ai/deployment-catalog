@@ -80,9 +80,11 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+        # 24G: with the template's 16G the container held 15.6 GiB after 250K-token prompts
+        # (journal 2026-11-27-first-start-tuning-and-benchmark.md).
         limits:
           cpus: "8"
-          memory: 16G
+          memory: 24G
 
 volumes:
   model:

@@ -3,7 +3,9 @@
 > ⚠️ **Experimental.** On 2026-11-27 this profile started on an RTX PRO 6000 Blackwell: vLLM
 > applies the LoRA to the NVFP4 base, the adapter changes the answers, and the full benchmark
 > ran (`journal/2026-11-27-first-start-tuning-and-benchmark.md`). Not measured: how much of
-> the adapter's published gain survives the quantized base (it was trained on BF16).
+> the adapter's published gain survives the quantized base (it was trained on BF16). One
+> arithmetic question is answered unstably by the adapter with thinking off (right in 5 of
+> 10 tries) where the base model is right.
 
 The [`qwen38-27b-nvfp4`](../qwen38-27b-nvfp4) profile with the LoRA adapter
 [`harness-hub/Qwen3.8-27B-pi-adapted`](https://huggingface.co/harness-hub/Qwen3.8-27B-pi-adapted)
@@ -14,20 +16,22 @@ loaded on top. Ask for the model `qwen3.8-27b-pi`.
 | | One request | Plateau |
 |---|---|---|
 | Real coding prompts (`coding-greedy`, probe) | 155 tokens per second | 2,754 at 32 requests (not the limit) |
-| Short prompts, long answers (`max-decode`) | 136 tokens per second | 3,529 at 96 requests |
-| Mixed lengths (`mixed-load`) | 109 tokens per second | 1,173–1,226 at 48–80 requests |
-| 8,192-token prompts (`max-prefill`) | 6,018 prefill tokens per second | 9,803–10,053 at 12–32 requests |
+| Short prompts, long answers (`max-decode`) | 132 tokens per second | 3,479 at 96 requests |
+| Mixed lengths (`mixed-load`) | 112 tokens per second | 1,179–1,200 at 64–80 requests |
+| 8,192-token prompts (`max-prefill`) | 5,875 prefill tokens per second | 9,920–10,061 at 12–32 requests |
 
-- No failed request in the benchmark (`benchmarks/2026-11-27-0444Z-llmperfbench.yaml`).
+- No failed request in the benchmark (`benchmarks/2026-11-27-0727Z-llmperfbench.yaml`; an earlier
+  run agrees within 3 %).
 - Ready 3.3 to 3.8 minutes after a deploy.
 - The adapter answers differently from the base model on 3 of 3 agent-style prompts.
+- The answer checks pass through the API gateway, which routes `qwen3.8-27b-pi` to the adapter.
 - Answers: 24 of 24 known answers; thinking off by default and on with `reasoning_effort`
   (`low`, `medium`, `xhigh`; `high` is refused); parallel tool calls and an answer from their
   results; a hidden code found in a 251,760-token prompt (161 s: long prompts prefill slowly).
 - GPU memory: 21.71 GiB of weights, a 60.24 GiB FP8 KV cache of 1,759,036 tokens; peak
-  92.82 GiB.
-- **Host memory:** the container held 15.6 GiB of its 16 GiB limit after long prompts. Raise
-  `limits.memory` before serving them.
+  93.85 GiB.
+- Host memory: the container holds 12.8 GiB of its 24 GiB limit after 250K-token prompts (the
+  template's 16G was too little).
 
 ## The adapter
 
@@ -82,13 +86,11 @@ was not trained or evaluated with. Its evaluations sampled at temperature 0.8, t
 
 ## Before this profile is more than a draft
 
-1. Raise the container's memory limit (16G now; 15.6 GiB held after long prompts).
-2. Run the pi harness against `qwen3.8-27b-pi` and `qwen3.8-27b-pi-base` to see whether the
+1. Run the pi harness against `qwen3.8-27b-pi` and `qwen3.8-27b-pi-base` to see whether the
    adapter's gain survives the quantized base. If it does not, the alternative is the BF16
    base (`Qwen/Qwen3.8-27B`, about 54 GB, the adapter's own recipe), or the adapter merged
    into the base and re-quantized.
-3. Try 5 draft tokens; look at the prefill speed of long prompts with and without the LoRA.
-4. Check the answers through the API gateway and the Anthropic API.
+2. Try 5 draft tokens; look at the prefill speed of long prompts with and without the LoRA.
 
 ## Checker
 

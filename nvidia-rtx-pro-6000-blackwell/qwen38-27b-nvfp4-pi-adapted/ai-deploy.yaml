@@ -9,8 +9,7 @@ display:
     the pi coding agent on software-engineering and terminal tasks: with thinking off it
     reaches most of the base model's maximum-effort accuracy at a quarter of the tokens. The
     qwen38-27b-nvfp4 profile with the adapter loaded on its NVFP4 weights; text only, tool
-    calling, MTP speculative decoding. The adapter was trained on the BF16 weights; measured
-    on one GPU on 2026-11-27.
+    calling, MTP speculative decoding. The adapter was trained on the BF16 weights.
   maturity: experimental
   author: onprem-ai
 
@@ -18,13 +17,14 @@ hardware:
   gpu:
     product: nvidia-rtx-pro-6000-blackwell
     count: 1
-    # 94 GiB, the qwen38-27b-nvfp4 profile's booking; the peak measured with the adapter is
-    # in runtime.measured_gpu_memory_bytes_per_device.
-    memory_bytes_per_device: 100931731456
+    # 96,768 MiB (94.5 GiB): the peak measured with the adapter is 96,099 MiB (journal
+    # 2026-11-27-first-start-tuning-and-benchmark.md), 157 MiB under the template's 94 GiB.
+    # An idle RTX PRO 6000 Blackwell has 97,251 MiB free.
+    memory_bytes_per_device: 101468602368
   cpu:
     architecture: amd64
   memory:
-    host_bytes: 17179869184
+    host_bytes: 25769803776
 
 runtime:
   engine: vllm
@@ -34,7 +34,7 @@ runtime:
   measured_gpu_memory_bytes_per_device:
     model_weights: 23310934999
     cuda_graphs: 1052266987
-    runtime_overhead: 10618593609
+    runtime_overhead: 11721695561
     kv_cache: 64682207477
   measured_kv_cache_tokens_per_replica: 1759036
 
