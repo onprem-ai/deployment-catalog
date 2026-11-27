@@ -61,7 +61,7 @@ released. Move to the 0.35.0 release image when it exists.
    cache's size from the engine's log; correct the two bookings and the context if needed.
 2. Run the answer checks and the platform benchmark; commit the benchmark file.
 3. One tuning round: FP8 against the 16-bit KV cache, and the number of DSpark draft tokens.
-4. Measure host memory against the 16G limit.
+4. Measure host memory against the 20G limit.
 
 ## License
 

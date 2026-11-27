@@ -52,8 +52,8 @@ services:
       timeout: 5s
       retries: 60
       start_period: 600s
-    # At most 6 CPUs. Host memory: the RTX PRO 6000 replica held 11.5 GiB of this 16G
-    # limit at its benchmark's peak; measure it again on an H200.
+    # At most 6 CPUs and 20G of host memory. The RTX PRO 6000 replica held 11.5 GiB at its
+    # benchmark's peak; measure it again on an H200.
     shm_size: 8gb
     deploy:
       resources:
@@ -66,7 +66,7 @@ services:
               capabilities: [gpu]
         limits:
           cpus: "6"
-          memory: 16G
+          memory: 20G
 
 volumes:
   model:

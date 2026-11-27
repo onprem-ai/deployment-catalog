@@ -23,7 +23,7 @@ hardware:
   cpu:
     architecture: amd64
   memory:
-    host_bytes: 17179869184
+    host_bytes: 21474836480
 
 runtime:
   engine: vllm

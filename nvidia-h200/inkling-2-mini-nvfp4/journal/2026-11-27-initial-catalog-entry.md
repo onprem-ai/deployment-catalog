@@ -21,8 +21,9 @@ verified; its H200 page was not read again for this entry.
   1,545,000 tokens: 1.47 requests of the full context. Not a measurement.
 - **CPU limit 6** (8 in the source profile), as asked for this profile. The source profile's
   CPU use was not measured, so whether 6 limits throughput at high concurrency is not known.
-- **Host memory limit 16G** kept: the source replica held 11.5 GiB at its benchmark's peak. A
-  KV pool almost twice as large may need more host memory for long prompts; not known.
+- **Host memory limit 20G** (16G in the source profile), as asked for this profile. The source
+  replica held 11.5 GiB at its benchmark's peak; whether a KV pool almost twice as large needs
+  more host memory for long prompts is not known.
 - **FP8 KV cache and 7 DSpark draft tokens** kept from the source profile, where they were
   measured. Not repeated on an H200.
 - **No `measured_gpu_memory_bytes_per_device` and no benchmark file:** nothing was measured.
