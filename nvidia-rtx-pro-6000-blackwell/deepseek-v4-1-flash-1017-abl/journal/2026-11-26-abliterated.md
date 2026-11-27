@@ -70,3 +70,20 @@ GPU memory per GPU: weights 74.56 GiB (72.51 target + 2.05 drafter), KV pool 2,9
 CUDA graphs 0.27 GiB, 86,221 MiB in use after the 102k-token requests (`nvidia-smi`): the official
 model's figures, since the edit keeps every tensor's format. The load-time bake took the weight load from
 about 3 to 8 minutes (CPU work on all four ranks); the overlay replaces it with a plain tensor swap.
+
+## Published
+
+2026-11-27: OnPrem AI model storage `onprem-ai--DeepSeek-V4.1-Flash-1017-abl`, uploaded with
+`upload_file_set.py publish` (7 files, 1.8 GB), `SHA256SUMS` sha256
+`e40ef424ddf809d297cefca4f08fff46a4c358f5064544833dcd2fd69abb503f`, signed (Sigstore transparency log index
+219041679). Checked: both `SHA256SUMS` and `SHA256SUMS.sigstore.json` listed, `cosign verify-blob` against the
+onprem-ai trusted root `Verified OK`, the stored checksums equal the local files (overlay sha256
+`6e605c4a98e637da3c633c07b0b30a2ef6942d4986e3d88820aea187b23e0a18`).
+
+## Re-validation with the published overlay (2026-11-27)
+
+This card as committed (weights `main` + `overlay` from storage) on four GPUs: the node downloaded the
+overlay (DeepSeek's files were cached), `abl41.py` replaced 86 tensors on every rank, weight load 134 s
+(the load-time bake took 489 s). Held-out prompts: harmful refusal chat 6.3 % (n=32; 2 marker matches, a
+full answer and "I can't generate videos directly, but here's a video concept ..."), think-high 0 % (n=32),
+benign chat 0 % (n=16); tool calls 8/8; 83,627 MiB per GPU after the start.

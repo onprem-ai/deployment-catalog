@@ -61,6 +61,9 @@ small: 0 of 64 has a 95 % upper bound of about 6 %. ² A story that contains a m
 different order (`273605` for `605273`, 102k tokens, depth 10 %); the same prompt was answered correctly on
 the repeat.
 
+Re-checked with the published overlay (start, harmful and benign refusal probe, tool calls): the same
+results, see the journal.
+
 Not measured: categories (self-harm, PII) separately, benchmarks beyond the GSM8K subset, image input (the
 card serves text).
 
