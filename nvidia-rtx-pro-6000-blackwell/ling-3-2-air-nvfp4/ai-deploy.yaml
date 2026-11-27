@@ -1,0 +1,151 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Ling 3.2 Air
+  subtitle: NVFP4 experts (third-party) · MTP · vision · 256K context
+  logo: assets/logo.png
+  short_description: >-
+    inclusionAI's 124B-total / 5.5B-active multimodal hybrid-linear MoE for workflow automation
+    and professional documents: text and image input, reasoning, tool calling. primitive-ai's
+    NVFP4 build of the routed experts (77.9 GB against the publisher's 129 GB FP8), which its
+    maker reports running on one RTX PRO 6000 Blackwell. Only tensors, JSON and the chat
+    template come from the third-party repository; the model's Python code comes from
+    inclusionAI's own. MTP speculative decoding, 262,144-token context; measured on one GPU
+    on 2026-11-27.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 1
+    # 96,768 MiB (94.5 GiB) with an 88 GiB engine booking (primitive-ai ran
+    # --gpu-memory-utilization 0.92): the measured peak is 96,309 MiB after long prompts,
+    # 6 GiB above the engine booking (journal 2026-11-27-first-start-tuning-and-benchmark.md).
+    # An idle RTX PRO 6000 Blackwell has 97,251 MiB free.
+    memory_bytes_per_device: 101468602368
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 34359738368
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 94489280512
+  # At the peak, after long prompts (journal 2026-11-27-first-start-tuning-and-benchmark.md).
+  measured_gpu_memory_bytes_per_device:
+    model_weights: 78275778969
+    cuda_graphs: 1299227607
+    runtime_overhead: 14443714971
+    kv_cache: 6968584437
+  measured_kv_cache_tokens_per_replica: 421486
+
+api:
+  routing_model_id: ling-3.2-air
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+
+model:
+  creator: inclusionAI (Ant Group); NVFP4 build by primitive-ai
+  homepage: https://huggingface.co/primitive-ai/Ling-3.2-air-NVFP4
+  released_at: '2026-11-23'
+  parameter_count: 124000000000
+  active_parameter_count: 5500000000
+  weights_disk_size_bytes: 77919638485
+  license:
+    expression: MIT
+    name: MIT License
+    url: https://huggingface.co/inclusionAI/Ling-3.2-air/blob/ff099487f6f57165e6fa9386ad61fddfafc78b76/README.md
+  mixture_of_experts: true
+  format: safetensors
+  quantization: nvfp4-experts-bf16
+  speculative_decoding: mtp
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 262144
+    reasoning: true
+    tool_use: true
+  weights:
+    # The third-party NVFP4 build: tensors (.safetensors), JSON and the chat template only.
+    # No Python file of this repository is downloaded.
+    main:
+      provider: huggingface
+      repository: primitive-ai/Ling-3.2-air-NVFP4
+      revision: a01b9c21680a104ccefcbce5b9e6745c004fb89b
+      files:
+      - chat_template.jinja
+      - config.json
+      - experts-layer02.safetensors
+      - experts-layer03.safetensors
+      - experts-layer04.safetensors
+      - experts-layer05.safetensors
+      - experts-layer06.safetensors
+      - experts-layer07.safetensors
+      - experts-layer08.safetensors
+      - experts-layer09.safetensors
+      - experts-layer10.safetensors
+      - experts-layer11.safetensors
+      - experts-layer12.safetensors
+      - experts-layer13.safetensors
+      - experts-layer14.safetensors
+      - experts-layer15.safetensors
+      - experts-layer16.safetensors
+      - experts-layer17.safetensors
+      - experts-layer18.safetensors
+      - experts-layer19.safetensors
+      - experts-layer20.safetensors
+      - experts-layer21.safetensors
+      - experts-layer22.safetensors
+      - experts-layer23.safetensors
+      - experts-layer24.safetensors
+      - experts-layer25.safetensors
+      - experts-layer26.safetensors
+      - experts-layer27.safetensors
+      - experts-layer28.safetensors
+      - experts-layer29.safetensors
+      - experts-layer30.safetensors
+      - experts-layer31.safetensors
+      - experts-layer32.safetensors
+      - experts-layer33.safetensors
+      - experts-layer34.safetensors
+      - experts-layer35.safetensors
+      - experts-layer36.safetensors
+      - experts-layer37.safetensors
+      - experts-layer38.safetensors
+      - experts-layer39.safetensors
+      - experts-layer40.safetensors
+      - experts-layer41.safetensors
+      - experts-layer42.safetensors
+      - generation_config.json
+      - input-scales.safetensors
+      - model.safetensors.index.json
+      - preprocessor_config.json
+      - rest-000.safetensors
+      - rest-001.safetensors
+      - special_tokens_map.json
+      - tokenizer.json
+      - tokenizer_config.json
+    # The model's own Python code (--trust-remote-code), from the publisher's repository.
+    # Each file has the same git blob id in both repositories on 2026-11-26.
+    code:
+      provider: huggingface
+      repository: inclusionAI/Ling-3.2-air
+      revision: ff099487f6f57165e6fa9386ad61fddfafc78b76
+      files:
+      - bailingmm_utils.py
+      - bailingmm_utils_video.py
+      - configuration_bailing_moe_v3_vl.py
+      - image_processing_bailingmm2.py
+      - modeling_bailing_moe_v3_vl.py
+      - processing_bailingmm2.py
+      - tokenization_bailing.py
