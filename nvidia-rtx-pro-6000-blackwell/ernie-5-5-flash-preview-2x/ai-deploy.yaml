@@ -3,7 +3,7 @@ $schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.js
 display:
   name: ERNIE 5.5 Flash Preview
   subtitle: FP4 experts · DSpark · 2× GPU
-  logo: assets/logo.png
+  logo: assets/logo.svg
   short_description: >-
     Baidu's 280B-total / 14B-active text MoE for agentic coding and knowledge work: blockwise
     FP8 with MXFP4 routed experts as shipped, DSpark speculative decoding, reasoning with
