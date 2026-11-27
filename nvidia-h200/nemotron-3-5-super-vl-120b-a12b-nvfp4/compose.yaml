@@ -80,7 +80,7 @@ services:
               count: 1
               capabilities: [gpu]
         limits:
-          cpus: "16"
+          cpus: "6"
           memory: 32G
 
 volumes:
