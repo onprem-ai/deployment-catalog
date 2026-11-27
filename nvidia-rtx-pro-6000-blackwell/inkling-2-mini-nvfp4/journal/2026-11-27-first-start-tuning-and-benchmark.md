@@ -95,8 +95,8 @@ no failed request at any of 35 levels.
 | `model_weights` | 23,482,733,690 | 21.87 | `Model loading took 21.87 GiB memory` (the draft head's file included) |
 | `cuda_graphs` | 1,288,490,188 | 1.20 | `Graph capturing finished in 97 secs, took 1.20 GiB` |
 | `kv_cache` | 59,538,984,960 | 55.45 | the engine's 83.99 GiB minus 23.21 GiB consumed, 4.13 GiB peak activation and 1.2 GiB of graphs (`Desired GPU memory utilization is (0.8844, 83.99 GiB)…`) |
-| `runtime_overhead` | 7,063,752,378 | 6.58 | the peak minus the parts above |
-| **Peak** | 91,373,961,216 | 85.10 | 87,141 MiB, `nvidia-smi` every 30 s during the benchmark |
+| `runtime_overhead` | 10,071,068,346 | 9.38 | the peak minus the parts above |
+| **Peak** | 94,381,277,184 | 87.90 | 90,009 MiB, `nvidia-smi` every 30 s during the repeated benchmark |
 
 - KV cache: 861,838 tokens (`GPU KV cache size`).
 - Engine booking 84 GiB (the log's 83.99 GiB): the peak is 1.10 GiB above it. Hardware
@@ -105,9 +105,44 @@ no failed request at any of 35 levels.
   peak.
 - Host memory: the container held 7.1 GiB of its 16 GiB limit after the benchmark.
 
+## Repeated on a quiet host
+
+The full benchmark was repeated with nothing else running on the host, on the same compose
+file: `benchmarks/2026-11-27-0829Z-llmperfbench.yaml`, 70 minutes, no failed request at any
+of 44 levels.
+
+| Workload | 1 request | Plateau | Best | First run (other GPU busy) |
+|---|---|---|---|---|
+| `max-prefill/1.0.0` | 5,465 prefill tok/s | 24 | 20,801 prefill tok/s at 40 | 5,340; plateau 16; 19,085 |
+| `max-decode/1.1.0` | 211 decode tok/s, 4.5 ms per token | 112 | 3,945 decode tok/s at 160 | 238; plateau 40; 2,376 |
+| `mixed-load/1.1.0` | 122 decode tok/s | 128 | 2,055 decode tok/s at 128 | 70; plateau 80; 1,912 |
+
+- **The first run undercounted the throughput.** With the host to itself the replica keeps
+  gaining to 112–128 requests in flight; in the first run `max-decode` stopped at 40 with
+  2,376 tok/s. This file replaces the first run's figures; the first file stays as the record
+  of that run.
+- `max-decode` for one request is 211 here against 238 before and 283–286 on real coding
+  prompts: its prompts are random words, and the drafter's luck on them varies from run to
+  run.
+- The engine runs vLLM's default number of sequences; the benchmark's ladder ended at 160
+  because the gain stopped, not because requests failed or waited (first token after 0.3 s at
+  160 in `max-decode`).
+
+After the benchmark: one 441,385-token prompt (hidden code found, 76 s).
+
+**Through the API gateway** (`https://<control plane>/v1`, an API gateway key): image input
+correct; 24 of 24 known answers; reasoning default and `reasoning_effort` low and high
+correct; two parallel tool calls and an answer from both results; a hidden code found at
+54,789 prompt tokens.
+
+**GPU memory on this run:** peak **90,009 MiB (87.90 GiB)** at the high concurrency levels
+(87,141 MiB in the first run, which stopped at 48 to 112 requests). It is the value now in
+`runtime.measured_gpu_memory_bytes_per_device` (`runtime_overhead` 10,071,068,346 bytes,
+9.38 GiB): 3.90 GiB above the 84 GiB engine booking. The hardware booking was 88 GiB,
+0.10 GiB above this peak; it is now 90 GiB. Host memory: the container held 11.5 GiB of its
+16 GiB limit.
+
 ## Next
 
-- Repeat the full benchmark with the other GPU idle.
 - Move to the vLLM 0.35.0 release image when it exists.
 - `--max-num-seqs`, and a second GPU (tensor parallel 2) for the full 1,048,576-token context.
-- Check the answers through the API gateway.

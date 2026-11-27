@@ -16,9 +16,9 @@ hardware:
   gpu:
     product: nvidia-rtx-pro-6000-blackwell
     count: 1
-    # 88 GiB: 84 GiB for the engine and 4 GiB above it. The measured peak is below the
-    # engine's 84 GiB (journal 2026-11-27-first-start-tuning-and-benchmark.md).
-    memory_bytes_per_device: 94489280512
+    # 90 GiB: 84 GiB for the engine and 6 GiB above it. The measured peak is 87.90 GiB at 160
+    # requests in flight (journal 2026-11-27-first-start-tuning-and-benchmark.md).
+    memory_bytes_per_device: 96636764160
   cpu:
     architecture: amd64
   memory:
@@ -32,7 +32,7 @@ runtime:
   measured_gpu_memory_bytes_per_device:
     model_weights: 23482733690
     cuda_graphs: 1288490188
-    runtime_overhead: 7063752378
+    runtime_overhead: 10071068346
     kv_cache: 59538984960
   measured_kv_cache_tokens_per_replica: 861838
 

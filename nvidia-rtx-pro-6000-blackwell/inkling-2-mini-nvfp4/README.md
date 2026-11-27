@@ -2,8 +2,8 @@
 
 > ⚠️ **Experimental: runs on a vLLM nightly, measured on one host.** On 2026-11-27 this profile
 > started on an RTX PRO 6000 Blackwell (a GPU vLLM's recipe does not list), passed its answer
-> checks and ran the full benchmark (`journal/2026-11-27-first-start-tuning-and-benchmark.md`).
-> Another model was being measured on the host's other GPU at the same time.
+> checks and ran the full benchmark, the second time with nothing else on the host
+> (`journal/2026-11-27-first-start-tuning-and-benchmark.md`).
 
 [`thinkingmachines/Inkling-2-Mini`](https://huggingface.co/thinkingmachines/Inkling-2-Mini) on
 one RTX PRO 6000 Blackwell with vLLM, following
@@ -14,15 +14,17 @@ one RTX PRO 6000 Blackwell with vLLM, following
 | | One request | Plateau |
 |---|---|---|
 | Real coding prompts (`coding-greedy`, probe) | 283–286 tokens per second | 2,106 at 32 requests (not the limit) |
-| Short prompts, long answers (`max-decode`) | 238 tokens per second | 2,342–2,376 at 40–48 requests |
-| Mixed lengths (`mixed-load`) | 70 tokens per second (129 in the probe) | 1,835–1,912 at 80–112 requests |
-| 8,192-token prompts (`max-prefill`) | 5,340 prefill tokens per second | 18,721–19,085 at 16–32 requests |
+| Short prompts, long answers (`max-decode`) | 211 tokens per second | 3,771–3,945 at 112–160 requests |
+| Mixed lengths (`mixed-load`) | 122 tokens per second | 1,970–2,055 at 112–160 requests |
+| 8,192-token prompts (`max-prefill`) | 5,465 prefill tokens per second | 19,692–20,801 at 24–40 requests |
 
-- No failed request in the benchmark (`benchmarks/2026-11-27-0308Z-llmperfbench.yaml`).
+- No failed request in the benchmark (`benchmarks/2026-11-27-0829Z-llmperfbench.yaml`, on a quiet
+  host; an earlier run with the other GPU busy stopped at lower throughput).
 - Ready 4.3 to 5.1 minutes after a deploy.
 - Answers: image input, 24 of 24 known answers, parallel tool calls and an answer from their
-  results, a hidden code found in a 445,508-token prompt (78 s).
-- GPU memory: 21.87 GiB of weights, a 55.45 GiB KV cache of 861,838 tokens; peak 85.10 GiB.
+  results, a hidden code found in a 445,508-token prompt (78 s). The same checks pass through
+  the API gateway.
+- GPU memory: 21.87 GiB of weights, a 55.45 GiB KV cache of 861,838 tokens; peak 87.90 GiB.
 
 ## The model
 
@@ -57,10 +59,8 @@ with driver 595.112.07. Move to the 0.35.0 release image when it exists.
 
 ## Before this profile is more than a draft
 
-1. Repeat the full benchmark with the host's other GPU idle.
-2. Move to the vLLM 0.35.0 release image.
-3. Check the answers through the API gateway, and in the languages you serve.
-4. Try `--max-num-seqs`, and two GPUs for the full 1,048,576-token context.
+1. Move to the vLLM 0.35.0 release image.
+2. Try `--max-num-seqs`, and two GPUs for the full 1,048,576-token context.
 
 Per-request reasoning effort: the checkpoint's chat template maps `none` to `max` onto an
 effort value, but the recipe documents no request parameter for it.
