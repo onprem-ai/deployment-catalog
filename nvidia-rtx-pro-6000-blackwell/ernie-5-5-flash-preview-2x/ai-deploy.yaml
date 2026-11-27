@@ -1,0 +1,218 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: ERNIE 5.5 Flash Preview
+  subtitle: FP4 experts · DSpark · 2× GPU
+  logo: assets/logo.svg
+  short_description: >-
+    Baidu's 280B-total / 14B-active text MoE for agentic coding and knowledge work: blockwise
+    FP8 with MXFP4 routed experts as shipped, DSpark speculative decoding, reasoning with
+    effort levels, tool calling. Tensor-parallel across two RTX PRO 6000 Blackwell GPUs with
+    300,000 tokens per request (KV pool 1.2M tokens, 12 requests at once), on a community SM120
+    port of Baidu's vLLM plugin.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-rtx-pro-6000-blackwell
+    count: 2
+    # 97,152 MiB (94.875 GiB), the whole GPU: the measured peak is 97,027 MiB after long
+    # prompts (journal 2026-11-27-tuning-and-benchmark.md), and an idle RTX PRO 6000
+    # Blackwell has 97,251 MiB free, so a 95 GiB booking makes the deploy warn "Not enough
+    # VRAM" on an empty GPU. No room for a driver that reserves more.
+    memory_bytes_per_device: 101871255552
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 21474836480
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  # At the peak, after long prompts (journal 2026-11-27-tuning-and-benchmark.md).
+  measured_gpu_memory_bytes_per_device:
+    model_weights: 85534273699
+    cuda_graphs: 2308544921
+    runtime_overhead: 4214821780
+    kv_cache: 9680446000
+  measured_kv_cache_tokens_per_replica: 1213175
+
+api:
+  routing_model_id: ernie-5.5-flash-preview
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+
+model:
+  creator: Baidu
+  homepage: https://huggingface.co/baidu/ERNIE-5.5-Flash-Preview
+  released_at: '2026-11-23'
+  parameter_count: 280000000000
+  active_parameter_count: 14000000000
+  weights_disk_size_bytes: 165934846423
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://huggingface.co/baidu/ERNIE-5.5-Flash-Preview/resolve/ace1100dcde7bf4eb06add6ae11ce4f43a11ddfe/LICENSE
+    file: licenses/source-0-LICENSE.txt
+  mixture_of_experts: true
+  format: safetensors
+  quantization: fp4-experts-fp8-block
+  speculative_decoding: dspark
+  capabilities:
+    input:
+    - text
+    output:
+    - text
+    max_context_length: 300000
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: huggingface
+      repository: baidu/ERNIE-5.5-Flash-Preview
+      revision: ace1100dcde7bf4eb06add6ae11ce4f43a11ddfe
+      files:
+      - LICENSE
+      - config.json
+      - decoding_ernie.py
+      - encoding_ernie.py
+      - flashindexer/flashindexer.safetensors
+      - generation_config.json
+      - model-00001-of-00128.safetensors
+      - model-00002-of-00128.safetensors
+      - model-00003-of-00128.safetensors
+      - model-00004-of-00128.safetensors
+      - model-00005-of-00128.safetensors
+      - model-00006-of-00128.safetensors
+      - model-00007-of-00128.safetensors
+      - model-00008-of-00128.safetensors
+      - model-00009-of-00128.safetensors
+      - model-00010-of-00128.safetensors
+      - model-00011-of-00128.safetensors
+      - model-00012-of-00128.safetensors
+      - model-00013-of-00128.safetensors
+      - model-00014-of-00128.safetensors
+      - model-00015-of-00128.safetensors
+      - model-00016-of-00128.safetensors
+      - model-00017-of-00128.safetensors
+      - model-00018-of-00128.safetensors
+      - model-00019-of-00128.safetensors
+      - model-00020-of-00128.safetensors
+      - model-00021-of-00128.safetensors
+      - model-00022-of-00128.safetensors
+      - model-00023-of-00128.safetensors
+      - model-00024-of-00128.safetensors
+      - model-00025-of-00128.safetensors
+      - model-00026-of-00128.safetensors
+      - model-00027-of-00128.safetensors
+      - model-00028-of-00128.safetensors
+      - model-00029-of-00128.safetensors
+      - model-00030-of-00128.safetensors
+      - model-00031-of-00128.safetensors
+      - model-00032-of-00128.safetensors
+      - model-00033-of-00128.safetensors
+      - model-00034-of-00128.safetensors
+      - model-00035-of-00128.safetensors
+      - model-00036-of-00128.safetensors
+      - model-00037-of-00128.safetensors
+      - model-00038-of-00128.safetensors
+      - model-00039-of-00128.safetensors
+      - model-00040-of-00128.safetensors
+      - model-00041-of-00128.safetensors
+      - model-00042-of-00128.safetensors
+      - model-00043-of-00128.safetensors
+      - model-00044-of-00128.safetensors
+      - model-00045-of-00128.safetensors
+      - model-00046-of-00128.safetensors
+      - model-00047-of-00128.safetensors
+      - model-00048-of-00128.safetensors
+      - model-00049-of-00128.safetensors
+      - model-00050-of-00128.safetensors
+      - model-00051-of-00128.safetensors
+      - model-00052-of-00128.safetensors
+      - model-00053-of-00128.safetensors
+      - model-00054-of-00128.safetensors
+      - model-00055-of-00128.safetensors
+      - model-00056-of-00128.safetensors
+      - model-00057-of-00128.safetensors
+      - model-00058-of-00128.safetensors
+      - model-00059-of-00128.safetensors
+      - model-00060-of-00128.safetensors
+      - model-00061-of-00128.safetensors
+      - model-00062-of-00128.safetensors
+      - model-00063-of-00128.safetensors
+      - model-00064-of-00128.safetensors
+      - model-00065-of-00128.safetensors
+      - model-00066-of-00128.safetensors
+      - model-00067-of-00128.safetensors
+      - model-00068-of-00128.safetensors
+      - model-00069-of-00128.safetensors
+      - model-00070-of-00128.safetensors
+      - model-00071-of-00128.safetensors
+      - model-00072-of-00128.safetensors
+      - model-00073-of-00128.safetensors
+      - model-00074-of-00128.safetensors
+      - model-00075-of-00128.safetensors
+      - model-00076-of-00128.safetensors
+      - model-00077-of-00128.safetensors
+      - model-00078-of-00128.safetensors
+      - model-00079-of-00128.safetensors
+      - model-00080-of-00128.safetensors
+      - model-00081-of-00128.safetensors
+      - model-00082-of-00128.safetensors
+      - model-00083-of-00128.safetensors
+      - model-00084-of-00128.safetensors
+      - model-00085-of-00128.safetensors
+      - model-00086-of-00128.safetensors
+      - model-00087-of-00128.safetensors
+      - model-00088-of-00128.safetensors
+      - model-00089-of-00128.safetensors
+      - model-00090-of-00128.safetensors
+      - model-00091-of-00128.safetensors
+      - model-00092-of-00128.safetensors
+      - model-00093-of-00128.safetensors
+      - model-00094-of-00128.safetensors
+      - model-00095-of-00128.safetensors
+      - model-00096-of-00128.safetensors
+      - model-00097-of-00128.safetensors
+      - model-00098-of-00128.safetensors
+      - model-00099-of-00128.safetensors
+      - model-00100-of-00128.safetensors
+      - model-00101-of-00128.safetensors
+      - model-00102-of-00128.safetensors
+      - model-00103-of-00128.safetensors
+      - model-00104-of-00128.safetensors
+      - model-00105-of-00128.safetensors
+      - model-00106-of-00128.safetensors
+      - model-00107-of-00128.safetensors
+      - model-00108-of-00128.safetensors
+      - model-00109-of-00128.safetensors
+      - model-00110-of-00128.safetensors
+      - model-00111-of-00128.safetensors
+      - model-00112-of-00128.safetensors
+      - model-00113-of-00128.safetensors
+      - model-00114-of-00128.safetensors
+      - model-00115-of-00128.safetensors
+      - model-00116-of-00128.safetensors
+      - model-00117-of-00128.safetensors
+      - model-00118-of-00128.safetensors
+      - model-00119-of-00128.safetensors
+      - model-00120-of-00128.safetensors
+      - model-00121-of-00128.safetensors
+      - model-00122-of-00128.safetensors
+      - model-00123-of-00128.safetensors
+      - model-00124-of-00128.safetensors
+      - model-00125-of-00128.safetensors
+      - model-00126-of-00128.safetensors
+      - model-00127-of-00128.safetensors
+      - model-00128-of-00128.safetensors
+      - model.safetensors.index.json
+      - tokenization_ernie.py
+      - tokenizer.json
+      - tokenizer_config.json

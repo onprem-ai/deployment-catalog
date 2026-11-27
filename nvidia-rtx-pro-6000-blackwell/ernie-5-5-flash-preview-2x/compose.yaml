@@ -1,0 +1,103 @@
+services:
+  inference:
+    # Built from runtime/Dockerfile (vLLM 0.32.0, Baidu's vLLM-ERNIE plugin at ba322a5, the
+    # SM120 port "V2" of hyudryu/ERNIE-5.5-Flash-Preview-2-RTXPro6000 at 8c5b856) and pushed
+    # to Docker Hub on 2026-11-27. The stock plugin refuses to start on these GPUs: its
+    # attention runs on FlashMLA, which has SM90/SM100 kernels only. The SM120 port's
+    # repository carries no license file.
+    image: onpremai/vllm-ernie55:0.32.0-ba322a5-sm120v2@sha256:f6977c10573049b28505adbb2542dbcd33c99ad5fb595bbbc1459bcf8f308370
+    # The command is the SM120 port's "V2" (its recipe/run.sh v2) with the model path, the
+    # served name and the API port, and two settings tuned on two RTX PRO 6000 Blackwell
+    # (journal 2026-11-27-tuning-and-benchmark.md): 4 DSpark draft tokens instead of 7, and
+    # 12 sequences instead of 8.
+    # - --tensor-parallel-size 2: Baidu's own command is data-parallel with expert
+    #   parallelism on four data-centre GPUs; TP2 is what fits two 96 GB cards (80.45 GiB
+    #   of weights on each).
+    # - --kv-cache-memory-bytes 9680446000 (9.02 GiB per GPU, a pool of 1,213,175 tokens)
+    #   instead of --gpu-memory-utilization: vLLM under-counts this model's graph and
+    #   prefill memory and over-allocates the KV cache from a share, and the failure is an
+    #   illegal memory access during a long prefill, not a clean out-of-memory error. The
+    #   checker's engine.kv-cache-size-fixed warning is expected. If a long prefill
+    #   faults, lower it to 9036201000 (1,132,440 tokens, 0.6 GiB more headroom).
+    # - --max-model-len 300000: the cap per request, so the pool holds four full requests.
+    #   The model's context is 1,048,576 tokens; a larger cap is untested with this memory
+    #   budget (the port's V1 ran one 524,288-token request with a smaller pool).
+    # - --max-num-batched-tokens 1024: the HCA compressor keeps scratch state for twice
+    #   the prefill chunk, so a small chunk is what leaves room for the pool.
+    # - --disable-custom-all-reduce: vLLM's custom all-reduce faults on PCIe-only
+    #   peer-to-peer; VLLM_ALLREDUCE_USE_FLASHINFER_PCIE_IPC=1 replaces NCCL instead.
+    # - DSpark with 4 draft tokens and adaptive verification. With the port's 7, the
+    #   drafter's tokens 5 to 7 were accepted 9 %, 4 % and 2 % of the time on real prompts;
+    #   4 decodes 5-8 % faster for one and four requests and captures smaller CUDA graphs.
+    # - --max-num-seqs 12: a decode batch of 12 x (1 + 4) = 60 tokens, below the port's
+    #   8 x (1 + 7) = 64. Same speed up to 8 requests, 25 % more tokens per second at 12.
+    #   The CUDA graphs take 2.1 GiB per GPU instead of 1.4; four 216K-token prompts at
+    #   once still fit (peak 97,023 MiB).
+    # - FP8 KV cache; the indexer cache stays FP8 (Baidu's MXFP4 indexer cache is
+    #   data-centre Blackwell only).
+    # - --trust-remote-code: the chat tokenizer is the weights repository's own
+    #   tokenization_ernie.py (tokenizer_config.json auto_map), with encoding_ernie.py and
+    #   decoding_ernie.py. Read at the pinned revision on 2026-11-26: they import json, re,
+    #   uuid, tokenizers and transformers only. The checker's
+    #   model.weights-executable-files warning is expected.
+    # - --enable-prefix-caching: vLLM 0.32's default, written out. The port measured a
+    #   follow-up turn on a 21.7K-token chat recomputing 370-560 tokens.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        set -euo pipefail
+        exec vllm serve /models/model \
+          --served-model-name ernie-5.5-flash-preview \
+          --host 0.0.0.0 --port 8080 \
+          --trust-remote-code \
+          --tensor-parallel-size 2 \
+          --disable-custom-all-reduce \
+          --kv-cache-dtype fp8 \
+          --kv-cache-memory-bytes 9680446000 \
+          --max-model-len 300000 \
+          --max-num-seqs 12 \
+          --max-num-batched-tokens 1024 \
+          --enable-prefix-caching \
+          --reasoning-parser ernie5 \
+          --tool-call-parser ernie5 \
+          --enable-auto-tool-choice \
+          --enable-prompt-tokens-details \
+          --speculative-config '{"method":"dspark","num_speculative_tokens":4,"draft_sample_method":"probabilistic","enable_adaptive_verification":true}'
+    environment:
+      HF_HUB_OFFLINE: "1"
+      VLLM_ALLREDUCE_USE_FLASHINFER_PCIE_IPC: "1"
+      VLLM_ENGINE_READY_TIMEOUT_S: "3600"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    # The port reports about 5 minutes to ready with the weights in the page cache (1
+    # minute of weights, the rest graph capture and kernel warm-up); a cold start reads
+    # 166 GB first.
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 120
+      start_period: 1800s
+    # Host memory is an estimate (the port ran with --ipc=host and no limit): measure it
+    # at the first deploy. 20G is the limit of deepseek-v4-flash-vision-exp, a tensor-parallel
+    # model of the same size on these GPUs, and fits the test host's 30 GB of RAM.
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "4"
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 2
+              capabilities: [gpu]
+        limits:
+          cpus: "16"
+          memory: 20G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
