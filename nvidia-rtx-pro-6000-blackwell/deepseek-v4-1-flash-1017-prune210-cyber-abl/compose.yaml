@@ -1,0 +1,72 @@
+# DeepSeek V4.1 Flash 1017 abliterated, for security work, on two RTX PRO 6000: routed experts pruned at load
+# time to the 210 of 384 per layer that carry the most routing mass on security requests (container-files/
+# keep210-cyber.json, ranked on public security work only, including security-relevant coding; see the
+# journal), and the refusal direction removed by the overlay onprem-ai--DeepSeek-V4.1-
+# Flash-1017-abl (86 attention output tensors, mounted at /models/overlay; abl41.py replaces them by name
+# while the checkpoint loads). The DSpark drafter keeps all 128 experts. Image: the official 1017 card's.
+services:
+  inference:
+    image: onpremai/sglang-dsv41-disk-engram:c4ca651-20261122@sha256:1c991c1a1cd438f452e8c86d2b7e6e21bf137b0680fab6a732d8366ef2ce59bd
+    entrypoint: [/bin/bash, -c]
+    command:
+      - |-
+        set -euo pipefail
+        python3 /opt/profile-files/make_view_prune.py /models/model /opt/model-view
+        exec /opt/dsv41/bin/dsv41-start python3 -m sglang.launch_server \
+          --model-path /opt/model-view \
+          --served-model-name deepseek-v4.1-flash-cyber-abliterated \
+          --trust-remote-code --load-format safetensors \
+          --model-loader-extra-config '{"enable_multithread_load": false}' \
+          --tp 2 --ep-size 2 --disable-custom-all-reduce \
+          --attention-backend dsv4 --kv-cache-dtype fp8_e4m3 \
+          --moe-runner-backend flashinfer_mxfp4 \
+          --mem-fraction-static 0.946 --chunked-prefill-size 2048 \
+          --context-length 204800 --max-running-requests 8 --cuda-graph-max-bs-decode 8 \
+          --speculative-algorithm DSPARK --speculative-dspark-block-size 5 \
+          --enable-decoder-swa-bounded-replay \
+          --tool-call-parser deepseekv41 --reasoning-parser deepseek-v41 \
+          --host 0.0.0.0 --port 8080
+    environment:
+      PYTHONPATH: "/opt/profile-files:/opt/dsv41/adapter"
+      PYTHONUNBUFFERED: "1"
+      TQDM_DISABLE: "1"
+      ABL_OVERLAY: "/models/overlay/abliterated-wo_b.safetensors"
+      DSV41_EXPERT_KEEP_SET: "/opt/profile-files/keep210-cyber.json"
+      DSV41_SM120_PREFILL_BACKEND: "dec64"
+      DSV41_SOURCE: "/models/model"
+      OFFLOAD_MODE: "nvme"
+      DSV41_CACHE_GIB: "8"
+      DSV41_ENGRAM_IO_DEPTH: "64"
+      NCCL_IB_DISABLE: "1"
+      NCCL_P2P_LEVEL: "SYS"
+      PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+    volumes:
+      - model:/models/model:ro
+      - overlay:/models/overlay:ro
+      - ./container-files:/opt/profile-files:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+    deploy:
+      resources:
+        reservations:
+          cpus: '4'
+          memory: 16G
+          devices:
+            - driver: nvidia
+              count: 2
+              capabilities: [gpu]
+        limits:
+          cpus: '24'
+          memory: 32G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
+  overlay:
+    x-ai-deploy:
+      weights: overlay
