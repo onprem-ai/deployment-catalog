@@ -23,7 +23,8 @@ decoding.
   host; an earlier run with the other GPU busy agrees within a few percent).
 - Ready 3.3 to 4.4 minutes after a deploy.
 - Answers: image input, 24 of 24 known answers, thinking on and off, parallel tool calls and
-  an answer from their results, a hidden code found in a 249,609-token prompt (31 s).
+  an answer from their results, a hidden code found in a 249,609-token prompt (31 s). The same
+  checks pass through the API gateway.
 - GPU memory: 72.90 GiB of weights and a 6.49 GiB KV cache of 421,486 tokens; peak 94.19 GiB.
 
 **MTP is a choice.** With it, one request decodes 174 tokens per second instead of 105 and

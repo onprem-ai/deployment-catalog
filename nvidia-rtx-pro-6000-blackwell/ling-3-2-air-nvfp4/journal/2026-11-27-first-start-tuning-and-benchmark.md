@@ -150,8 +150,12 @@ GPU memory on this run: 95,493 MiB at the benchmark's peak, **96,453 MiB** after
 13.59 GiB). The hardware booking of 96,768 MiB is 315 MiB above it. Host memory: the
 container held 6.0 GiB.
 
+**Through the API gateway** (`https://<control plane>/v1`, an API gateway key), on a fresh
+deploy of the final compose file: image input correct; 24 of 24 known answers; thinking
+default, off, and `reasoning_effort` low and high correct; two parallel tool calls and an
+answer from both results; a hidden code found at 61,462 prompt tokens (4.4 s).
+
 ## Next
 
 - Decide MTP on or off per use; try a shorter context with MTP for a larger pool.
 - Compare with inclusionAI's FP8 release on two GPUs (the route without a third party).
-- Check the answers through the API gateway.
