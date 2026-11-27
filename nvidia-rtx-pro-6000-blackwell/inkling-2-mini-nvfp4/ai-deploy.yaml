@@ -8,8 +8,7 @@ display:
     Thinking Machines' 26.4B-total / 3.4B-active multimodal looped MoE transformer (the middle
     12 of 24 layers run three times): text and image input, reasoning, tool calling, mixed
     NVFP4 and MXFP8 as shipped, DSpark speculative decoding. One RTX PRO 6000 Blackwell with
-    524,288 tokens per request, FP8 KV cache. Runs on a vLLM nightly (0.35.0 is not released);
-    measured on one GPU on 2026-11-27.
+    524,288 tokens per request, FP8 KV cache.
   maturity: experimental
   author: onprem-ai
 
