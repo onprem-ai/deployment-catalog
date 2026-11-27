@@ -1,0 +1,85 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.1.0/ai-deploy.schema.json
+
+display:
+  name: Inkling 2 Mini
+  subtitle: NVFP4 · DSpark · vision · 1M context
+  logo: assets/logo.png
+  short_description: >-
+    Thinking Machines' 26.4B-total / 3.4B-active multimodal looped MoE transformer (the middle
+    12 of 24 layers run three times): text and image input, reasoning, tool calling, mixed
+    NVFP4 and MXFP8 as shipped, DSpark speculative decoding. One H200 with the model's full
+    1,048,576-token context, FP8 KV cache.
+  maturity: experimental
+  author: onprem-ai
+
+hardware:
+  gpu:
+    product: nvidia-h200
+    count: 1
+    # The whole card: 136 GiB, the largest booking this catalog's H200 profiles use, with
+    # 128 GiB of it for the engine. Not measured on an H200
+    # (journal 2026-11-27-initial-catalog-entry.md).
+    memory_bytes_per_device: 146028888064
+  cpu:
+    architecture: amd64
+  memory:
+    host_bytes: 21474836480
+
+runtime:
+  engine: vllm
+  compose: compose.yaml
+  engine_memory_booking_bytes_per_device: 137438953472
+
+api:
+  routing_model_id: inkling-2-mini
+  openai:
+    container: inference
+    port: 8080
+    openapi: https://raw.githubusercontent.com/openai/openai-openapi/38170fdddbb6a1813eae6c6587ee17cf2987185b/openapi.yaml
+    endpoints:
+    - POST /v1/chat/completions
+    - GET /v1/models
+
+model:
+  creator: Thinking Machines Lab
+  homepage: https://huggingface.co/thinkingmachines/Inkling-2-Mini
+  released_at: '2026-11-20'
+  parameter_count: 26400000000
+  active_parameter_count: 3400000000
+  weights_disk_size_bytes: 20191586893
+  license:
+    expression: Apache-2.0
+    name: Apache License 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.txt
+    file: licenses/source-0-LICENSE.txt
+  mixture_of_experts: true
+  format: safetensors
+  quantization: nvfp4-mxfp8
+  speculative_decoding: dspark
+  capabilities:
+    input:
+    - text
+    - image
+    output:
+    - text
+    max_context_length: 1048576
+    reasoning: true
+    tool_use: true
+  weights:
+    main:
+      provider: huggingface
+      repository: thinkingmachines/Inkling-2-Mini
+      revision: c9d028302cd0f035fdf8e7e91f089a4ce94d2195
+      files:
+      - chat_template.jinja
+      - config.json
+      - generation_config.json
+      - hf_quant_config.json
+      - model-00001-of-00001.safetensors
+      - model.safetensors.index.json
+      - mtp.safetensors
+      - processor_config.json
+      - special_tokens_map.json
+      - tiktoken/tokenizer.model
+      - tokenizer.json
+      - tokenizer_config.json

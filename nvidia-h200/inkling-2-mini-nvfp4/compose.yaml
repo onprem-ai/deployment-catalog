@@ -1,0 +1,73 @@
+services:
+  inference:
+    # vLLM's recipe (recipes.vllm.ai/thinkingmachines/Inkling-2-Mini) requires vLLM >= 0.35.0,
+    # which is not released: it names vllm/vllm-openai:nightly. This is the nightly of
+    # 2026-11-26 (vLLM main at 5aea3057), its multi-arch manifest pinned so the image cannot
+    # change upstream. The recipe lists the H200 as verified; this profile has not been
+    # started on one. The nightly is built for CUDA 13.2 and needs a driver that supports
+    # it.
+    image: vllm/vllm-openai:nightly-5aea30579ad672c3c35be43112b7a1f7b293a09e@sha256:d24e5fc73f0b859bd76c9d2f6f6fa4da3001afd7637f2610876420f3027ea6c7
+    # The command is the recipe's (--tensor-parallel-size 1, --reasoning-parser inkling,
+    # DSpark with 7 draft tokens from the speculator bundled in the checkpoint, which is
+    # presumably mtp.safetensors: the recipe does not name the file), plus:
+    # - the model path, the served name and the API port;
+    # - --tool-call-parser inkling with --enable-auto-tool-choice, the recipe's opt-in
+    #   tool calling;
+    # - --max-model-len 1048576, the model's context. An estimate says one such request
+    #   fits: measured on a 96 GB GPU, the FP8 KV cache held 861,838 tokens in 55.45 GiB,
+    #   and the engine's 128 GiB here leaves about 99 GiB for it, about 1.5M tokens. If the
+    #   engine refuses to start, lower this to 524288;
+    # - --kv-cache-dtype fp8. The recipe leaves the model's 16-bit type; measured on a 96 GB
+    #   GPU, FP8 held 13 % more tokens, decoded 6-9 % faster at 8 and 32 requests and
+    #   answered every check the same. Not repeated on an H200;
+    # - --gpu-memory-utilization, which the deploy replaces with the engine booking's share;
+    # - --enable-prefix-caching written out.
+    # DSpark keeps the recipe's 7 draft tokens. Its draft head takes no image embeddings, so
+    # drafts for image requests are made from the text alone.
+    # Not set, as in the recipe: --max-num-seqs, --max-num-batched-tokens, image limits.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        set -euo pipefail
+        exec vllm serve /models/model \
+          --served-model-name inkling-2-mini \
+          --host 0.0.0.0 --port 8080 \
+          --tensor-parallel-size 1 \
+          --gpu-memory-utilization 0.9156 \
+          --max-model-len 1048576 \
+          --kv-cache-dtype fp8 \
+          --reasoning-parser inkling \
+          --tool-call-parser inkling \
+          --enable-auto-tool-choice \
+          --enable-prefix-caching \
+          --speculative-config '{"method":"dspark","num_speculative_tokens":7,"draft_sample_method":"probabilistic"}'
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 600s
+    # At most 6 CPUs and 20G of host memory. A replica on a 96 GB GPU held 11.5 GiB at its
+    # benchmark's peak; measure it on an H200.
+    shm_size: 8gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "1"
+          memory: 4G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "6"
+          memory: 20G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
