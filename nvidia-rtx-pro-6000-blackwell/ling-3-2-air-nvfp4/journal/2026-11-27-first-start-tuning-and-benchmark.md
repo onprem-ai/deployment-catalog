@@ -104,8 +104,8 @@ no failed request at any of 27 levels.
 | `model_weights` | 78,275,778,969 | 72.90 | `Model loading took 72.9 GiB memory` (the MTP layer included) |
 | `cuda_graphs` | 1,299,227,607 | 1.21 | `Graph capturing finished in 10 secs, took 1.21 GiB` |
 | `kv_cache` | 6,968,584,437 | 6.49 | `Available KV cache memory: 7.7 GiB` minus the graphs |
-| `runtime_overhead` | 14,443,714,971 | 13.45 | the peak minus the parts above |
-| **Peak** | 100,987,305,984 | 94.05 | 96,309 MiB, `nvidia-smi` after the long prompts |
+| `runtime_overhead` | 14,594,709,915 | 13.59 | the peak minus the parts above |
+| **Peak** | 101,138,300,928 | 94.19 | 96,453 MiB, `nvidia-smi` after a long prompt on the quiet-host run |
 
 - KV cache: 421,486 tokens (`GPU KV cache size`).
 - The engine's log: `Desired GPU memory utilization is (0.9265, 87.99 GiB). Actual usage is
@@ -118,10 +118,40 @@ no failed request at any of 27 levels.
   engine booking instead would shrink a KV pool that is already small.
 - Host memory: the container held 3.9 GiB after the benchmark.
 
+## Repeated on a quiet host, with the final compose file
+
+After the session above the compose file changed twice, without changing what runs:
+
+- **`--kv-cache-dtype auto`** is written out, with the reason for 16-bit (the profile check's
+  hint `engine.kv-cache-dtype` asks for it).
+- **A start without the Python files was tried and failed**: with the `code` download and
+  `--trust-remote-code` removed, the engine stops at load with `Failed to load the processor.
+  If the processor is a custom processor not yet available in the HuggingFace transformers
+  library, consider … --trust-remote-code` (replica `8b6a1dc3`). The publisher's Python files
+  stay.
+
+Then the full benchmark was repeated with nothing else running on the host:
+`benchmarks/2026-11-27-0637Z-llmperfbench.yaml` (its `compose_sha256` is the current
+`compose.yaml`), 37 minutes, no failed request at any of 27 levels.
+
+| Workload | 1 request | Plateau | At the plateau and above | First run (other GPU busy) |
+|---|---|---|---|---|
+| `max-prefill/1.0.0` | 9,758 prefill tok/s | 8 | 16,530–17,156 prefill tok/s | 9,373; 16,829–17,695 |
+| `max-decode/1.1.0` | 150 decode tok/s, 6.5 ms per token | 12 | 597–616 decode tok/s | 152; 601–622 |
+| `mixed-load/1.1.0` | 140 decode tok/s | 12 | 507–553 decode tok/s | 123; 508–543 |
+
+The two runs agree within a few percent; `mixed-load` for one request is the largest difference
+(140 against 123). `benchmarks/2026-11-27-0333Z-llmperfbench.yaml` is the first run, on the
+compose file before the two changes.
+
+GPU memory on this run: 95,493 MiB at the benchmark's peak, **96,453 MiB** after one
+248,521-token prompt (found, 31 s), the highest value measured and the one in
+`runtime.measured_gpu_memory_bytes_per_device` (`runtime_overhead` 14,594,709,915 bytes,
+13.59 GiB). The hardware booking of 96,768 MiB is 315 MiB above it. Host memory: the
+container held 6.0 GiB.
+
 ## Next
 
-- Repeat the full benchmark with the other GPU idle.
 - Decide MTP on or off per use; try a shorter context with MTP for a larger pool.
-- Start without the `code` download and `--trust-remote-code`.
 - Compare with inclusionAI's FP8 release on two GPUs (the route without a third party).
 - Check the answers through the API gateway.

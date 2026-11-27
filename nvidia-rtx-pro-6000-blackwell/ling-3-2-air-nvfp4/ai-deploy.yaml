@@ -20,7 +20,7 @@ hardware:
     product: nvidia-rtx-pro-6000-blackwell
     count: 1
     # 96,768 MiB (94.5 GiB) with an 88 GiB engine booking (primitive-ai ran
-    # --gpu-memory-utilization 0.92): the measured peak is 96,309 MiB after long prompts,
+    # --gpu-memory-utilization 0.92): the measured peak is 96,453 MiB after long prompts,
     # 6 GiB above the engine booking (journal 2026-11-27-first-start-tuning-and-benchmark.md).
     # An idle RTX PRO 6000 Blackwell has 97,251 MiB free.
     memory_bytes_per_device: 101468602368
@@ -37,7 +37,7 @@ runtime:
   measured_gpu_memory_bytes_per_device:
     model_weights: 78275778969
     cuda_graphs: 1299227607
-    runtime_overhead: 14443714971
+    runtime_overhead: 14594709915
     kv_cache: 6968584437
   measured_kv_cache_tokens_per_replica: 421486
 

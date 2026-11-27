@@ -29,9 +29,9 @@ services:
     #   605 instead of 460 for eight. It costs KV cache: the pool holds 421,486 tokens instead
     #   of 1,430,200, and at 32 requests the throughput is lower (686 against 923). For many
     #   requests at once, or several long ones, delete the --speculative-config line.
-    # - The KV cache keeps the model's 16-bit type: with --kv-cache-dtype fp8 the engine did
-    #   not start (the Triton MLA kernel: "out of resource: shared memory, Required: 102400,
-    #   Hardware limit: 101376").
+    # - --kv-cache-dtype auto: the KV cache keeps the model's 16-bit type on purpose. With
+    #   fp8 the engine does not start on this GPU (the Triton MLA kernel: "out of resource:
+    #   shared memory, Required: 102400, Hardware limit: 101376").
     # - --enable-prefix-caching, from inclusionAI's vLLM command (its --mamba-cache-mode is
     #   deprecated in this build and has no effect).
     # - --gpu-memory-utilization is replaced at deploy by the engine booking's share.
@@ -49,6 +49,7 @@ services:
           --gpu-memory-utilization 0.92 \
           --max-model-len 262144 \
           --max-num-seqs 64 \
+          --kv-cache-dtype auto \
           --enable-prefix-caching \
           --reasoning-parser ling3 \
           --enable-auto-tool-choice \
