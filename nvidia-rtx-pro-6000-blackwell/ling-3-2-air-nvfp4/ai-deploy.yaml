@@ -10,8 +10,7 @@ display:
     NVFP4 build of the routed experts (77.9 GB against the publisher's 129 GB FP8), which its
     maker reports running on one RTX PRO 6000 Blackwell. Only tensors, JSON and the chat
     template come from the third-party repository; the model's Python code comes from
-    inclusionAI's own. MTP speculative decoding, 262,144-token context; measured on one GPU
-    on 2026-11-27.
+    inclusionAI's own. MTP speculative decoding, 262,144-token context.
   maturity: experimental
   author: onprem-ai
 
