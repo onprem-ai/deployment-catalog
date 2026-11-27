@@ -1,25 +1,22 @@
 # Inkling 2 Mini (NVFP4, DSpark, FP8 KV cache, 1M context)
 
-> ⚠️ **Experimental: written from the RTX PRO 6000 Blackwell profile, not started on an H200.**
-> Its memory figures are estimates and it has no benchmark
-> (`journal/2026-11-27-initial-catalog-entry.md`). It runs on a vLLM nightly.
+> ⚠️ **Experimental: not started on an H200.** Its memory figures are estimates and it has no
+> benchmark (`journal/2026-11-27-initial-catalog-entry.md`). It runs on a vLLM nightly.
 
 [`thinkingmachines/Inkling-2-Mini`](https://huggingface.co/thinkingmachines/Inkling-2-Mini) on
 one H200 with vLLM, following
 [vLLM's recipe](https://recipes.vllm.ai/thinkingmachines/Inkling-2-Mini), which lists the H200
-as verified. The settings are those measured in
-[`nvidia-rtx-pro-6000-blackwell/inkling-2-mini-nvfp4`](../../nvidia-rtx-pro-6000-blackwell/inkling-2-mini-nvfp4/),
-with the whole card booked and the model's full context.
+as verified. The whole card is booked and a request may use the model's full context.
 
-## What differs from the RTX PRO 6000 profile
+## This profile
 
-| | RTX PRO 6000 Blackwell (measured) | H200 (this profile, estimated) |
-|---|---|---|
-| GPU memory booked | 90 GiB, 84 GiB of it for the engine | 136 GiB, 128 GiB of it for the engine |
-| KV cache | 55.45 GiB, 861,838 tokens | about 99 GiB, about 1.5M tokens |
-| Tokens per request | 524,288 | 1,048,576 |
-| CPU limit | 8 | 6 |
-| Image, weights, other flags | | the same |
+| | |
+|---|---|
+| GPU memory booked | 136 GiB, 128 GiB of it for the engine |
+| KV cache (estimated) | about 99 GiB, about 1.5M tokens, FP8 |
+| Tokens per request | 1,048,576 |
+| CPU limit | 6 |
+| Host memory limit | 20G |
 
 ## The model
 
@@ -36,18 +33,17 @@ with the whole card booked and the model's full context.
 
 Yes: 20.2 GB of weights on a 141 GB card.
 
-- With 128 GiB for the engine, about 99 GiB is left for the KV cache: 128 minus the 21.87 GiB
-  of weights, 1.20 GiB of CUDA graphs and 5.5 GiB of other engine memory measured on the RTX
-  PRO 6000. At that profile's 15,543 tokens per GiB (FP8) this is about 1.5M tokens, 1.47
-  requests of the full context.
+- The estimate uses the engine's memory as measured on a 96 GB GPU: 21.87 GiB of weights,
+  1.20 GiB of CUDA graphs, 5.5 GiB of other engine memory, and 15,543 tokens per GiB of FP8 KV
+  cache. With 128 GiB for the engine that leaves about 99 GiB for the KV cache: about 1.5M
+  tokens, 1.47 requests of the full context.
 - If the engine refuses to start with `--max-model-len 1048576`, lower it to 524288.
-- Above the engine's booking the RTX PRO 6000 replica used 3.9 GiB at 160 requests in flight;
-  this profile leaves 8 GiB.
+- Above the engine's booking that measurement showed 3.9 GiB at 160 requests in flight; this
+  profile leaves 8 GiB.
 
 ## Speed
 
-Not measured. The checkpoint is NVFP4 and MXFP8, which Blackwell GPUs compute natively and the
-H200 does not: the RTX PRO 6000 profile's throughput does not carry over.
+Not measured. The checkpoint is NVFP4 and MXFP8, which the H200 does not compute natively.
 
 ## Image
 
