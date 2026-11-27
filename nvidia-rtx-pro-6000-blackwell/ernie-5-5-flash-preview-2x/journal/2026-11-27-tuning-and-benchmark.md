@@ -123,8 +123,29 @@ no failed request at any of 37 levels.
 | Two tool calls in one turn; answer from both results | yes; yes |
 | Hidden code at 51,472 / 208,790 prompt tokens | found; 12.6 / 52.4 s |
 
+## The model's full context, tried and not kept
+
+`--max-model-len 1048576` on the same KV budget (9,680,446,000 bytes per GPU), after the
+benchmark:
+
+| Try | Setting | Result |
+|---|---|---|
+| 1 | 1,048,576 tokens, `--max-num-seqs 12` | did not start: `CUDA error: out of memory` in both workers while capturing CUDA graphs |
+| 2 | 1,048,576 tokens, `--max-num-seqs 4` | started in 6.3 minutes; pool 1,389,663 tokens; 96,145 MiB per GPU when idle |
+| 2 | one prompt of 520,756 tokens | hidden code found, 161 s; peak 97,235 MiB per GPU |
+| 2 | one prompt of about 1M tokens | HTTP 500 after 135 s, `EngineCore encountered an issue`; the engine exited and the container restarted |
+
+- The cause of the failure at 1M tokens was not captured: the restart replaced the container's
+  log. The GPUs were at 97,235 MiB of 97,887 MiB before it, so memory is the likely cause,
+  not the known one.
+- A 520K-token prompt works with 4 sequences, but it leaves 0.6 GiB free per GPU, and that
+  setting has no benchmark. The profile stays at 300,000 tokens and 12 sequences, the setting
+  that was benchmarked.
+- A prompt far above the working size takes the whole replica down, not only the request.
+
 ## Next
 
 - Ask the SM120 port's author for a license.
 - Measure the probe's noise; then 3 and 5 draft tokens, and 16 sequences.
-- A request cap above 300,000 tokens (the pool holds 1.21M).
+- A request cap between 300,000 and 520,000 tokens with fewer sequences, with a benchmark;
+  the engine's error at 1M tokens.

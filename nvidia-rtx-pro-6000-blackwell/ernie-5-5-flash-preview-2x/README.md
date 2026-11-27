@@ -83,7 +83,9 @@ image, Baidu's plugin at `ba322a5` (Apache-2.0), and the port's four V2 files la
 1. Ask the SM120 port's author for a license, or replace the port when Baidu's plugin or vLLM
    supports these GPUs.
 2. Measure the probe's noise, then try 3 and 5 draft tokens and 16 sequences.
-3. Try a request cap above 300,000 tokens: the KV pool holds 1.21M.
+3. A request cap up to about 520,000 tokens works with `--max-num-seqs 4` (one prompt, no
+   benchmark); the model's full 1,048,576 tokens crashed the engine on these two GPUs
+   (`journal/2026-11-27-tuning-and-benchmark.md`).
 
 ## Checker
 
