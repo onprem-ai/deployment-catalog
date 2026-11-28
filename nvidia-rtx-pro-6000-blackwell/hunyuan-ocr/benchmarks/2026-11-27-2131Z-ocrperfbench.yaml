@@ -1,0 +1,33 @@
+$schema: https://schemas.onprem.ai/ai-deploy-profiles/v1.0.0/ocr-benchmark.schema.json
+measured_on: '2026-11-27T21:31:18Z'
+subject:
+  hardware:
+    gpu:
+      product: nvidia-rtx-pro-6000-blackwell
+      count: 1
+  engine:
+    image: vllm/vllm-openai:dig-a230095847e93bd4
+  compose_sha256: e2a904da8887930aef1878b0b5320048c9047de1d320b99da5ac1082539d58c8
+run:
+  load_generator:
+    image: localhost:5000/onprem-ai/load-generator:dev-892868be@sha256:d494e59242888fb699196473933dc1829dd7f504a63e534924fc8e1ba894bac5
+    version: dev-892868be
+results:
+- workload: ocr-pages/1.0.0
+  stop_reason: plateau
+  plateau_concurrency: 24
+  levels:
+    concurrency: [1, 2, 4, 8, 12, 16, 20, 24, 32, 40]
+    window_seconds: [52.46, 24.71, 21.47, 16.92, 25.71, 24.91, 38.58, 38.86, 40.41, 37.34]
+    requests: [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
+    requests_failed: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    pages_truncated: [2, 0, 2, 0, 4, 0, 3, 1, 0, 1]
+    pages_per_minute: [114.4, 247.6, 318.6, 478.8, 452.7, 510.6, 522.6, 582.2, 592.5, 588.2]
+    seconds_per_page_p50: [0.136, 0.151, 0.188, 0.198, 0.25, 0.302, 0.294, 0.314, 1.091, 2.514]
+    seconds_per_page_p90: [1.133, 1.155, 2.611, 2.688, 6.244, 5.427, 7.69, 6.892, 6.794, 11.435]
+    seconds_per_page_p95: [2.489, 2.418, 4.596, 4.339, 7.283, 8.219, 13.221, 14.163, 12.073, 15.183]
+    time_to_first_token_seconds_p50: [0.104, 0.108, 0.112, 0.13, 0.154, 0.15, 0.167, 0.163, 0.86, 2.077]
+    time_to_first_token_seconds_p95: [0.118, 0.162, 0.187, 0.196, 0.258, 0.243, 0.263, 0.277, 1.282, 3.152]
+    prompt_tokens_mean: [1735.9, 1733.7, 1734.3, 1760.5, 1744.6, 1750.6, 1735.7, 1736, 1774.7, 1721.7]
+    completion_tokens_mean: [245.3, 175.2, 233.8, 151.1, 319.5, 185.6, 259.5, 193.5, 168, 228.1]
+journal: journal/2026-11-27_ocr_benchmark.md
