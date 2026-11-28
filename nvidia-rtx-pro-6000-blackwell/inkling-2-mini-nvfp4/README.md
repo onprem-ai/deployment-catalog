@@ -1,10 +1,5 @@
 # Inkling 2 Mini (NVFP4, DSpark, FP8 KV cache, 512K context)
 
-> ⚠️ **Experimental: runs on a vLLM nightly, measured on one host.** On 2026-11-27 this profile
-> started on an RTX PRO 6000 Blackwell (a GPU vLLM's recipe does not list), passed its answer
-> checks and ran the full benchmark, the second time with nothing else on the host
-> (`journal/2026-11-27-first-start-tuning-and-benchmark.md`).
-
 [`thinkingmachines/Inkling-2-Mini`](https://huggingface.co/thinkingmachines/Inkling-2-Mini) on
 one RTX PRO 6000 Blackwell with vLLM, following
 [vLLM's recipe](https://recipes.vllm.ai/thinkingmachines/Inkling-2-Mini), with an FP8 KV cache.
