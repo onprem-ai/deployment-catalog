@@ -98,9 +98,17 @@ no failed request at any of 32 levels.
   free. There is no room to spare; a lower `--kv-cache-memory-bytes` is the way to make some.
 - Host memory: the container held 10.3 to 12.9 GiB of its 24G limit.
 
+## Through the API gateway, and the image in the registry
+
+- Through the API gateway (`https://<control plane>/v1`, an API gateway key): image input
+  correct; 24 of 24 known answers; reasoning default, `no_think` and `high` correct; two
+  parallel tool calls and an answer from both results; a hidden code at 53,030 prompt tokens.
+- The image was pushed to Docker Hub as `onpremai/vllm-hy4-flash:77766db-sm120-diskengram1`.
+  The registry answers the digest `sha256:355a4b10c1996838e423b55b47e16fe4dd03c149bd634d635056a668c363d214`,
+  the one `compose.yaml` pins, so the compose file and its benchmark stay as they are.
+
 ## Not done
 
-- The image is not in a registry.
-- A start on another CPU; the API gateway path; a comparison with Tencent's FP8 weights.
+- A start on another CPU; a comparison with Tencent's FP8 weights.
 - The benchmarks ran with `measure_while_serving_clients`: the service had no other caller,
   but the control plane counts every ready replica as serving clients.

@@ -47,7 +47,8 @@ files before the step runs. The kernel's page cache keeps the rows in use and ca
   with 8 sequences instead of 32: it stopped growing at 8 requests.
 - Ready 5.1 to 5.4 minutes after a deploy with the weights in the page cache.
 - Answers: image input, 24 of 24 known answers, two parallel tool calls and an answer from
-  their results, a hidden code found in a 224,129-token prompt (36 s).
+  their results, a hidden code found in a 224,129-token prompt (36 s). The same checks
+  pass through the API gateway (the hidden code at 53,030 tokens).
 - The model always reasons. `reasoning_effort` takes `no_think`, `high` and `max`.
 - GPU memory per GPU: 51.67 GiB of model, a 34 GiB KV cache of 3,277,817 tokens (12.5
   requests of the full 262,144 tokens); peak 96,279 MiB, 489 MiB below the booking.
@@ -85,17 +86,16 @@ host-side code for the CPU they run on, and a cache warmed on one CPU stops with
 CPU without those instructions. Every node compiles its own at the first start; the build
 fails if such a cache is in the image.
 
-The image is built on the measuring host and is **not pushed to a registry yet**: another
-node cannot pull it.
+Pushed to Docker Hub on 2026-11-28; the registry's digest is the one pinned in
+`compose.yaml` (`sha256:355a4b10…`).
 
 ## Before this profile is more than a draft
 
-1. Push the image and check that the registry's digest is the one in `compose.yaml`.
-2. Start it on a node with another CPU (the first start compiles the kernels there).
-3. Compare answers with Tencent's FP8 weights; check the answers through the API gateway.
-4. The recipe reports about 124 tok/s for one request with DFly; here it is 78 to 93, with
+1. Start it on a node with another CPU (the first start compiles the kernels there).
+2. Compare answers with Tencent's FP8 weights.
+3. The recipe reports about 124 tok/s for one request with DFly; here it is 78 to 93, with
    the tables on disk and on the GPUs alike. The cause is not known.
-5. A faster reader for cold rows (asynchronous direct I/O instead of one read per row).
+4. A faster reader for cold rows (asynchronous direct I/O instead of one read per row).
 
 ## Checker
 
