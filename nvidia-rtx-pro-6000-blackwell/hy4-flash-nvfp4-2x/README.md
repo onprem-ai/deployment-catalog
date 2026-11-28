@@ -1,9 +1,5 @@
 # Hy4 flash (NVFP4, DFly, Engram tables on disk, 2× GPU)
 
-> ⚠️ **Experimental.** Third-party NVFP4 weights, a vLLM development build with community
-> SM120 patches, and a disk reader for the Engram tables that this profile adds. Measured on
-> one host on 2026-11-28 (`journal/2026-11-28-first-start-engram-on-disk.md`).
-
 [`tencent/Hy4-flash`](https://huggingface.co/tencent/Hy4-flash) in the NVFP4 build
 [`atakans/Hy4-flash-NVFP4`](https://huggingface.co/atakans/Hy4-flash-NVFP4) on two RTX PRO 6000
 Blackwell GPUs with vLLM: 262,144 tokens per request, 32 requests at once, DFly speculative
