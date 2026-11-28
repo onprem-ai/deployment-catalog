@@ -1,0 +1,79 @@
+services:
+  inference:
+    # Built from runtime/Dockerfile: vLLM main at 77766db, the seven SM120 overlay files of
+    # high-tech-system/Hy4-flash-NVFP4-vLLM-SM120 at b0067d3f, and this profile's patched
+    # hy_v4_flash/nvidia/engram.py (Engram tables read from disk). Source files only: no
+    # kernel cache is baked in, every node compiles its own at the first start. Built on
+    # 2026-11-28.
+    image: onpremai/vllm-hy4-flash:77766db-sm120-diskengram1@sha256:355a4b10c1996838e423b55b47e16fe4dd03c149bd634d635056a668c363d214
+    # The command is the SM120 recipe's (README-Atakans.md: TP2, BF16 compute, 262,144
+    # tokens, --scheduler-reserve-full-isl, 8,192 batched tokens, a fixed 34 GiB KV cache
+    # per GPU, the hy_v4 parsers) with the model path, the served name and the API port, and:
+    # - HY4_ENGRAM_DISK=1 with --engram-config '{"cpu_offload":false}': the recipe keeps the
+    #   Engram tables in host memory (about 77 GiB in its container). Here each step's rows
+    #   are read from the checkpoint files before the step, so the tables take neither GPU
+    #   nor host memory: 49.35 GiB of model per GPU against 79.35 GiB with the tables on
+    #   the GPUs;
+    # - --max-num-batched-tokens 8192 also sizes the buffer the rows are staged in;
+    # - --max-num-seqs 32, the recipe's: with 8 the throughput stopped growing at 8 requests
+    #   (425 against 887 decode tok/s at 32 requests);
+    # - DFly speculative decoding with the checkpoint's draft head and 5 draft tokens, vLLM's
+    #   recipe for this model: 78 to 92 decode tok/s for one request against 46 without it.
+    #   Draft acceptance is the same with the tables on disk as with them on the GPUs;
+    # - --enable-prefix-caching written out.
+    # --kv-cache-memory-bytes fixes the KV cache's size; the checker's
+    # engine.kv-cache-size-fixed warning is expected.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        set -euo pipefail
+        exec vllm serve /models/model \
+          --served-model-name hy4-flash \
+          --host 0.0.0.0 --port 8080 \
+          --tensor-parallel-size 2 \
+          --dtype bfloat16 \
+          --max-model-len 262144 --scheduler-reserve-full-isl \
+          --max-num-seqs 32 \
+          --max-num-batched-tokens 8192 \
+          --kv-cache-memory-bytes 34G \
+          --enable-prefix-caching \
+          --gpu-memory-utilization 0.95 \
+          --reasoning-parser hy_v4 \
+          --enable-auto-tool-choice --tool-call-parser hy_v4 \
+          --engram-config '{"cpu_offload":false}' \
+          --speculative-config '{"num_speculative_tokens":5,"method":"dfly"}'
+    environment:
+      HY4_ENGRAM_DISK: "1"
+      HF_HUB_OFFLINE: "1"
+    volumes:
+      - model:/models/model:ro
+    expose:
+      - "8080"
+    # Ready 3.5 minutes after a start with the kernels compiled and the weights in the page
+    # cache; the first start on a node compiles its kernels first.
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 120
+      start_period: 1800s
+    # The page cache holds the Engram rows in use and the kernel can drop them: the
+    # container held 10.3 to 12.9 GiB of the 24G limit during the benchmarks.
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "4"
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 2
+              capabilities: [gpu]
+        limits:
+          cpus: "16"
+          memory: 24G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
