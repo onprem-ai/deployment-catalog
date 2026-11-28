@@ -1,0 +1,90 @@
+services:
+  inference:
+    # primitive-ai's card names vllm/vllm-openai:nightly-a2bcb5657a881a002e79d0adab3c6b5e39436121,
+    # a tag Docker Hub does not have. This is the tag that exists for that vLLM commit
+    # (2026-11-05), the CUDA 13.4 build, pinned by its multi-arch digest. It serves the model
+    # on an RTX PRO 6000 Blackwell with driver 595.112.07 (journal
+    # 2026-11-27-first-start-tuning-and-benchmark.md); that it is the image primitive-ai
+    # measured with is an assumption.
+    image: vllm/vllm-openai:cu134-nightly-a2bcb5657a881a002e79d0adab3c6b5e39436121@sha256:76a533475156ffdb3656ccc389d0c71f5cec16897c0f490ac43e4f379c4b4f0d
+    # Two downloads, one model directory. The tensors, JSON files and chat template are
+    # primitive-ai's NVFP4 build (/models/model); no Python file of that repository is
+    # downloaded. --trust-remote-code needs the model's own Python files beside config.json,
+    # so they come from the publisher's repository inclusionAI/Ling-3.2-air (/models/code;
+    # the same git blobs as primitive-ai's copies) and the script links both into
+    # /tmp/model. Without the Python files and --trust-remote-code the engine may not load
+    # the model's configuration and image processor; that variant is untested.
+    #
+    # The command is primitive-ai's (--trust-remote-code, --gpu-memory-utilization 0.92,
+    # the ling3 parsers), which its card reports on one RTX PRO 6000 Blackwell, with what
+    # the first runs here showed (journal 2026-11-27-first-start-tuning-and-benchmark.md):
+    # - --max-model-len 262144, the model's context (primitive-ai ran 32,768), together with
+    #   --max-num-seqs 64. With vLLM's default of 1,024 sequences the engine did not start:
+    #   it asked for a 23.55 GiB attention workspace at 262,144 tokens, and at 65,536 it had
+    #   406 Mamba cache blocks for 1,024 sequences. With 64 sequences the full context
+    #   starts.
+    # - MTP speculative decoding with 3 draft tokens, as in inclusionAI's vLLM command
+    #   (primitive-ai's figures are without it; the build keeps the MTP layer). On real
+    #   coding prompts it decodes 174 instead of 105 tokens per second for one request and
+    #   605 instead of 460 for eight. It costs KV cache: the pool holds 421,486 tokens instead
+    #   of 1,430,200, and at 32 requests the throughput is lower (686 against 923). For many
+    #   requests at once, or several long ones, delete the --speculative-config line.
+    # - --kv-cache-dtype auto: the KV cache keeps the model's 16-bit type on purpose. With
+    #   fp8 the engine does not start on this GPU (the Triton MLA kernel: "out of resource:
+    #   shared memory, Required: 102400, Hardware limit: 101376").
+    # - --enable-prefix-caching, from inclusionAI's vLLM command (its --mamba-cache-mode is
+    #   deprecated in this build and has no effect).
+    # - --gpu-memory-utilization is replaced at deploy by the engine booking's share.
+    entrypoint: [bash, -c]
+    command:
+      - |-
+        set -euo pipefail
+        mkdir -p /tmp/model
+        ln -s /models/model/* /tmp/model/
+        ln -s /models/code/*.py /tmp/model/
+        exec vllm serve /tmp/model \
+          --served-model-name ling-3.2-air \
+          --host 0.0.0.0 --port 8080 \
+          --trust-remote-code \
+          --gpu-memory-utilization 0.92 \
+          --max-model-len 262144 \
+          --max-num-seqs 64 \
+          --kv-cache-dtype auto \
+          --enable-prefix-caching \
+          --reasoning-parser ling3 \
+          --enable-auto-tool-choice \
+          --tool-call-parser ling3 \
+          --speculative-config '{"method":"mtp","num_speculative_tokens":3}'
+    volumes:
+      - model:/models/model:ro
+      - code:/models/code:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 120
+      start_period: 900s
+    # Host memory is an estimate: measure it at the first deploy.
+    shm_size: 16gb
+    deploy:
+      resources:
+        reservations:
+          cpus: "2"
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          cpus: "16"
+          memory: 32G
+
+volumes:
+  model:
+    x-ai-deploy:
+      weights: main
+  code:
+    x-ai-deploy:
+      weights: code
