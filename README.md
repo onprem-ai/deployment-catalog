@@ -32,4 +32,6 @@ The profiles are read by the onprem.ai control plane. Add this repository under
 **Configuration → Catalogs** with a branch, tag or commit, and optionally a subdirectory
 such as `nvidia-rtx-pro-6000-blackwell`.
 
-## Built by humans with support of agentic coding tools like OpenCode, Pi, or Claude.
+## Attribution
+
+Built by humans with support of agentic coding tools like OpenCode, Pi, or Claude.
