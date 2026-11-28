@@ -18,10 +18,10 @@ hardware:
   gpu:
     product: nvidia-rtx-pro-6000-blackwell
     count: 2
-    # 96,768 MiB: 489 MiB above the measured peak (96,279 MiB after a 224K-token prompt
-    # that followed the benchmark, journal 2026-11-28-first-start-engram-on-disk.md), below
-    # the 97,251 MiB an idle GPU has free.
-    memory_bytes_per_device: 101468602368
+    # 95,232 MiB (93 GiB): 90 GiB for the engine and 3 GiB above it. The measured peak is
+    # 91,299 MiB after a 224K-token prompt that followed the benchmark
+    # (journal 2026-11-28-first-start-engram-on-disk.md).
+    memory_bytes_per_device: 99857989632
   cpu:
     architecture: amd64
   memory:
@@ -37,9 +37,9 @@ runtime:
   measured_gpu_memory_bytes_per_device:
     model_weights: 55480240046
     cuda_graphs: 1245540516
-    runtime_overhead: 7722846126
-    kv_cache: 36507222016
-  measured_kv_cache_tokens_per_replica: 3277817
+    runtime_overhead: 847375237
+    kv_cache: 38160784425
+  measured_kv_cache_tokens_per_replica: 2988305
 
 api:
   routing_model_id: hy4-flash

@@ -18,7 +18,7 @@ bytes each, 59 GiB together) at four of its layers. The usual ways to hold them:
 |---|---|---|---|
 | on the GPUs (vLLM's default for this build) | 79.35 GiB | small | 5 to 6 GiB: 65K-token requests |
 | in host memory (the SM120 recipe) | 51.67 GiB | about 77 GiB in the recipe's container | 34 GiB |
-| **on disk (this profile)** | **51.67 GiB** | **12 GiB measured** | **34 GiB** |
+| **on disk (this profile)** | **51.67 GiB** | **7 to 13 GiB measured** | **35.5 GiB** |
 
 With `HY4_ENGRAM_DISK=1` each step's rows are read from the checkpoint's `.safetensors`
 files before the step runs. The kernel's page cache keeps the rows in use and can drop them.
@@ -38,21 +38,25 @@ files before the step runs. The kernel's page cache keeps the rows in use and ca
 
 | | One request | Plateau |
 |---|---|---|
-| Short prompts, long answers (`max-decode`) | 93 tokens per second | 916 to 969 at 32 to 48 requests |
-| Mixed lengths (`mixed-load`) | 61 tokens per second | 353 to 401 at 32 to 48 requests |
-| 8,192-token prompts (`max-prefill`) | 2,893 prefill tokens per second | 4,326 to 4,633 at 8 to 32 requests |
+| Short prompts, long answers (`max-decode`) | 95 tokens per second | 876 to 892 at 32 to 48 requests |
+| Mixed lengths (`mixed-load`) | 60 tokens per second | 338 to 385 at 32 to 64 requests |
+| 8,192-token prompts (`max-prefill`) | 2,113 prefill tokens per second | 3,689 to 4,397 at 8 to 32 requests |
 
-- No failed request in the benchmark (`benchmarks/2026-11-28-1227Z-llmperfbench.yaml`, 32
-  levels in 90 minutes). `benchmarks/2026-11-28-0957Z-llmperfbench.yaml` is the same profile
-  with 8 sequences instead of 32: it stopped growing at 8 requests.
+- No failed request in the benchmark (`benchmarks/2026-11-28-1535Z-llmperfbench.yaml`, 32
+  levels in 97 minutes). Two earlier files are records of earlier settings:
+  `benchmarks/2026-11-28-1227Z-llmperfbench.yaml` with the KV cache fixed at 34 GiB
+  (`--kv-cache-memory-bytes`, within a few percent of this one), and
+  `benchmarks/2026-11-28-0957Z-llmperfbench.yaml` with 8 sequences, which stopped growing at
+  8 requests.
 - Ready 5.1 to 5.4 minutes after a deploy with the weights in the page cache.
 - Answers: image input, 24 of 24 known answers, two parallel tool calls and an answer from
   their results, a hidden code found in a 224,129-token prompt (36 s). The same checks
   pass through the API gateway (the hidden code at 53,030 tokens).
 - The model always reasons. `reasoning_effort` takes `no_think`, `high` and `max`.
-- GPU memory per GPU: 51.67 GiB of model, a 34 GiB KV cache of 3,277,817 tokens (12.5
-  requests of the full 262,144 tokens); peak 96,279 MiB, 489 MiB below the booking.
-- Host memory: 12.1 to 12.9 GiB of the 24G limit.
+- GPU memory per GPU: 51.67 GiB of model, a 35.54 GiB KV cache of 2,988,305 tokens (11.4
+  requests of the full 262,144 tokens), sized by the engine booking of 90 GiB; peak
+  91,299 MiB, 3.8 GiB below the 93 GiB booking.
+- Host memory: 7.2 to 12.9 GiB of the 24G limit.
 
 ## The model
 
@@ -99,8 +103,7 @@ Pushed to Docker Hub on 2026-11-28; the registry's digest is the one pinned in
 
 ## Checker
 
-No errors. Warning `engine.kv-cache-size-fixed`: the KV cache's size is set in bytes, as the
-recipe does.
+No errors, no warnings, no hints (33 rules passed).
 
 ## License
 

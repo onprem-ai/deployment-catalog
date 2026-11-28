@@ -82,6 +82,42 @@ no failed request at any of 32 levels.
   tokens in 36.3 s (66 s on the 8-sequence replica, before the rows were cached).
 - No engine error in the log.
 
+## The KV cache sized by the engine booking
+
+The profile as first merged fixed the KV cache with the recipe's `--kv-cache-memory-bytes 34G`
+and did not state its type. The deploy profile checker reports both
+(`engine.kv-cache-size-fixed`, `engine.kv-cache-dtype`); they were known and left in, which
+was wrong. Now:
+
+- `--kv-cache-dtype fp8_ds_mla` is written out: the format the engine's log names
+  (`Using fp8_ds_mla KV cache format for FLASHINFER_MLA_SPARSE_SM120 backend`).
+- `--kv-cache-memory-bytes` is removed. With the 90 GiB engine booking the engine reports
+  `Desired GPU memory utilization is (0.9476, 90.0 GiB)`, 51.95 GiB of weights and non-torch
+  memory, 2.5 GiB of peak activation, 1.16 GiB of CUDA graphs and
+  `Available KV cache memory: 35.54 GiB`: a pool of 2,988,305 tokens (3,277,817 before).
+- The checker: 33 rules passed, no warning, no hint.
+
+`benchmarks/2026-11-28-1535Z-llmperfbench.yaml` (compose `dcc1474ecb4e…`), 97 minutes, no failed
+request at any of 32 levels:
+
+| Workload | 1 request | Plateau concurrency | Best | With the fixed 34 GiB (1227Z) |
+|---|---|---|---|---|
+| `max-prefill/1.0.0` | 2,113 prefill tok/s | 12 | 4,396 | 2,893; 12; 4,633 |
+| `max-decode/1.1.0` | 95.2 decode tok/s | 32 | 892 | 93.0; 40; 969 |
+| `mixed-load/1.1.0` | 59.6 decode tok/s | 40 | 385 | 61.4; 40; 401 |
+
+- The two runs differ by a few percent, most in `max-prefill` for one request (2,113 against
+  2,893): its random-word prompts read cold Engram rows, and how many are in the page cache
+  differs between runs.
+- After it: 24 of 24 known answers; tool calls; image input; a hidden code at 224,129 prompt
+  tokens in 36.5 s. No engine error in the log.
+- GPU memory: 90,755 MiB per GPU after the start, 90,785 MiB during the benchmark,
+  **91,299 MiB** after the long prompt (96,279 MiB with the fixed 34 GiB). The hardware
+  booking is lowered from 96,768 MiB to 95,232 MiB (93 GiB): 3 GiB above the engine's 90 GiB.
+- Host memory: 7.2 to 8.4 GiB of the 24G limit.
+
+The memory table below is for this setting.
+
 ## GPU and host memory
 
 `nvidia-smi` every 30 s during the benchmark, and after the long prompt.
@@ -89,14 +125,13 @@ no failed request at any of 32 levels.
 | Part | Bytes | GiB | Source |
 |---|---|---|---|
 | `model_weights` | 55,480,240,046 | 51.67 | `Model loading took 51.67 GiB`, the DFly head included, the Engram tables not |
-| `kv_cache` | 36,507,222,016 | 34.00 | `--kv-cache-memory-bytes 34G`, 3,277,817 tokens |
+| `kv_cache` | 38,160,784,425 | 35.54 | `Available KV cache memory: 35.54 GiB`, 2,988,305 tokens |
 | `cuda_graphs` | 1,245,540,516 | 1.16 | `Graph capturing finished … took 1.16 GiB` (1.10 on the other rank) |
-| `runtime_overhead` | 7,722,846,126 | 7.19 | the peak minus the parts above |
-| **Peak** | 100,955,848,704 | 94.02 | 96,279 MiB on GPU 0 after the 224K-token prompt (95,319 MiB during the benchmark) |
+| `runtime_overhead` | 847,375,237 | 0.79 | the peak minus the parts above |
+| **Peak** | 95,733,940,224 | 89.16 | 91,299 MiB on GPU 0 after the 224K-token prompt (90,785 MiB during the benchmark) |
 
-- Hardware booking 96,768 MiB: 489 MiB above the peak, 483 MiB below what an idle GPU has
-  free. There is no room to spare; a lower `--kv-cache-memory-bytes` is the way to make some.
-- Host memory: the container held 10.3 to 12.9 GiB of its 24G limit.
+- Hardware booking 95,232 MiB (93 GiB): 3.8 GiB above the peak.
+- Host memory: the container held 7.2 to 12.9 GiB of its 24G limit over all runs.
 
 ## Through the API gateway, and the image in the registry
 

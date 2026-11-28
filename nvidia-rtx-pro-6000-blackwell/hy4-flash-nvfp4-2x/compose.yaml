@@ -7,8 +7,8 @@ services:
     # 2026-11-28.
     image: onpremai/vllm-hy4-flash:77766db-sm120-diskengram1@sha256:355a4b10c1996838e423b55b47e16fe4dd03c149bd634d635056a668c363d214
     # The command is the SM120 recipe's (README-Atakans.md: TP2, BF16 compute, 262,144
-    # tokens, --scheduler-reserve-full-isl, 8,192 batched tokens, a fixed 34 GiB KV cache
-    # per GPU, the hy_v4 parsers) with the model path, the served name and the API port, and:
+    # tokens, --scheduler-reserve-full-isl, 8,192 batched tokens, the hy_v4 parsers) with
+    # the model path, the served name and the API port, and:
     # - HY4_ENGRAM_DISK=1 with --engram-config '{"cpu_offload":false}': the recipe keeps the
     #   Engram tables in host memory (about 77 GiB in its container). Here each step's rows
     #   are read from the checkpoint files before the step, so the tables take neither GPU
@@ -20,9 +20,12 @@ services:
     # - DFly speculative decoding with the checkpoint's draft head and 5 draft tokens, vLLM's
     #   recipe for this model: 78 to 92 decode tok/s for one request against 46 without it.
     #   Draft acceptance is the same with the tables on disk as with them on the GPUs;
-    # - --enable-prefix-caching written out.
-    # --kv-cache-memory-bytes fixes the KV cache's size; the checker's
-    # engine.kv-cache-size-fixed warning is expected.
+    # - --enable-prefix-caching written out;
+    # - --kv-cache-dtype fp8_ds_mla written out: the FP8 KV cache format of this model's
+    #   sparse attention, the one the engine picks for it by default;
+    # - no --kv-cache-memory-bytes (the recipe fixes 34 GiB per GPU): the KV cache is what
+    #   the engine booking leaves, through --gpu-memory-utilization, which the deploy
+    #   replaces with the booking's share. 90 GiB gives 35.54 GiB, 2,988,305 tokens.
     entrypoint: [bash, -c]
     command:
       - |-
@@ -35,7 +38,7 @@ services:
           --max-model-len 262144 --scheduler-reserve-full-isl \
           --max-num-seqs 32 \
           --max-num-batched-tokens 8192 \
-          --kv-cache-memory-bytes 34G \
+          --kv-cache-dtype fp8_ds_mla \
           --enable-prefix-caching \
           --gpu-memory-utilization 0.95 \
           --reasoning-parser hy_v4 \
