@@ -27,7 +27,9 @@ images, one page per request, at least 100 pages per level), started with
   1,682 to 1,723 prompt tokens.
 - **GPU memory went above the profile's booking:** peak 16,351 MiB (`nvidia-smi`, every
   30 s) against `hardware.gpu.memory_bytes_per_device` of 15,360 MiB, 991 MiB more.
-  The booking was not changed here.
+  The booking is raised to 16,896 MiB (17,716,740,096 bytes) with this entry, 545 MiB above
+  the peak. The compose file is unchanged, so the engine's own share
+  (`--gpu-memory-utilization`) and the benchmark stay as they are.
 - Host memory at the end of the run: 7.45 GiB of the 16G limit.
 - The run was started with `measure_while_serving_clients`: the service had no other caller,
   but the control plane counts every ready replica as serving clients.

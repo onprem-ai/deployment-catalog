@@ -14,7 +14,9 @@ hardware:
   gpu:
     product: nvidia-rtx-pro-6000-blackwell
     count: 1
-    memory_bytes_per_device: 16106127360
+    # 16,896 MiB: above the 16,351 MiB peak of the OCR benchmark
+    # (journal 2026-11-27_ocr_benchmark.md); 15,360 MiB before.
+    memory_bytes_per_device: 17716740096
   cpu:
     architecture: amd64
   memory:
