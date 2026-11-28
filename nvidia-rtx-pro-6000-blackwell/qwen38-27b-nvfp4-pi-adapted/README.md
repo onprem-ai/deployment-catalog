@@ -1,12 +1,5 @@
 # Qwen3.8 27B pi-adapted (NVFP4 base, LoRA, MTP, thinking off)
 
-> ⚠️ **Experimental.** On 2026-11-27 this profile started on an RTX PRO 6000 Blackwell: vLLM
-> applies the LoRA to the NVFP4 base, the adapter changes the answers, and the full benchmark
-> ran (`journal/2026-11-27-first-start-tuning-and-benchmark.md`). Not measured: how much of
-> the adapter's published gain survives the quantized base (it was trained on BF16). One
-> arithmetic question is answered unstably by the adapter with thinking off (right in 5 of
-> 10 tries) where the base model is right.
-
 The [`qwen38-27b-nvfp4`](../qwen38-27b-nvfp4) profile with the LoRA adapter
 [`harness-hub/Qwen3.8-27B-pi-adapted`](https://huggingface.co/harness-hub/Qwen3.8-27B-pi-adapted)
 loaded on top. Ask for the model `qwen3.8-27b-pi`.

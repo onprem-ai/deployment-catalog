@@ -1,10 +1,5 @@
 # ERNIE 5.5 Flash Preview (FP4 experts, DSpark, 300K context, 2× GPU)
 
-> ⚠️ **Experimental: measured on one host.** On 2026-11-27 this profile ran on two RTX PRO 6000
-> Blackwell: answer checks, a full benchmark and long prompts
-> (`journal/2026-11-27-tuning-and-benchmark.md`). Its image includes a community patch whose
-> repository carries no license (see "Image").
-
 [`baidu/ERNIE-5.5-Flash-Preview`](https://huggingface.co/baidu/ERNIE-5.5-Flash-Preview) on two
 RTX PRO 6000 Blackwell GPUs, tensor-parallel, with vLLM 0.32.0 and Baidu's
 [vLLM-ERNIE](https://github.com/baidu/vLLM-ERNIE) plugin. The command is the "V2" configuration of

@@ -1,8 +1,5 @@
 # Inkling 2 Mini (NVFP4, DSpark, FP8 KV cache, 1M context)
 
-> ⚠️ **Experimental: not started on an H200.** Its memory figures are estimates and it has no
-> benchmark (`journal/2026-11-27-initial-catalog-entry.md`). It runs on a vLLM nightly.
-
 [`thinkingmachines/Inkling-2-Mini`](https://huggingface.co/thinkingmachines/Inkling-2-Mini) on
 one H200 with vLLM, following
 [vLLM's recipe](https://recipes.vllm.ai/thinkingmachines/Inkling-2-Mini), which lists the H200

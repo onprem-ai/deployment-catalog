@@ -1,10 +1,5 @@
 # Ling 3.2 Air (third-party NVFP4 experts, MTP, 256K context, 1× GPU)
 
-> ⚠️ **Experimental, and the weights are a third party's.** inclusionAI publishes this model in
-> FP8 only. The NVFP4 build is primitive-ai's. On 2026-11-27 this profile started on an RTX PRO
-> 6000 Blackwell, passed its answer checks and ran the full benchmark, the second time with
-> nothing else on the host (`journal/2026-11-27-first-start-tuning-and-benchmark.md`).
-
 [`inclusionAI/Ling-3.2-air`](https://huggingface.co/inclusionAI/Ling-3.2-air) in the NVFP4 build
 [`primitive-ai/Ling-3.2-air-NVFP4`](https://huggingface.co/primitive-ai/Ling-3.2-air-NVFP4), on
 one RTX PRO 6000 Blackwell with vLLM, the model's 262,144-token context, MTP speculative
